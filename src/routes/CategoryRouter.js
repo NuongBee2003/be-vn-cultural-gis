@@ -7,3 +7,5 @@ route.get('/', requireAuth,requireRole('user'), CategoryController.getAllCategor
 route.post('/', requireAuth,requireRole('admin'), CategoryController.create);
 route.delete('/:id', requireAuth,requireRole('admin'), CategoryController.delete);
 route.put('/:id', requireAuth,requireRole('admin'), CategoryController.update);
+
+module.exports = route;

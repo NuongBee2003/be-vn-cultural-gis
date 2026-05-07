@@ -30,6 +30,7 @@ function requireAuth(req, res, next) {
 }
 
 function requireRole(...allowedRoles) {
+    const normalizedAllowedRoles = allowedRoles.map((r) => String(r || "").toUpperCase());
     return (req, res, next) => {
         if (!req.user) {
             return res
@@ -38,12 +39,12 @@ function requireRole(...allowedRoles) {
         }
 
         const role = String(req.user.role || "").toUpperCase();
-        if (!allowedRoles.includes(role)) {
+        if (!normalizedAllowedRoles.includes(role)) {
             return res
                 .status(403)
                 .json({
                     success: false,
-                    message: `Requires role: ${allowedRoles.join(", ")}`,
+                    message: `Requires role: ${normalizedAllowedRoles.join(", ")}`,
                 });
         }
 
