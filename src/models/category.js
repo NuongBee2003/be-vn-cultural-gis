@@ -14,14 +14,6 @@ module.exports = function(sequelize, DataTypes) {
     icon_marker: {
       type: DataTypes.STRING(255),
       allowNull: true
-    },
-    parent_id: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: 'categories',
-        key: 'id'
-      }
     }
   }, {
     sequelize,
@@ -34,13 +26,6 @@ module.exports = function(sequelize, DataTypes) {
         using: "BTREE",
         fields: [
           { name: "id" },
-        ]
-      },
-      {
-        name: "categories_parent_id_idx",
-        using: "BTREE",
-        fields: [
-          { name: "parent_id" },
         ]
       },
     ]

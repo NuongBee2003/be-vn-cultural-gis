@@ -1,5 +1,6 @@
 var DataTypes = require("sequelize").DataTypes;
 var _PrismaMigration = require("./prismaMigration");
+var _Asset = require("./asset");
 var _Booking = require("./booking");
 var _Category = require("./category");
 var _CheckIn = require("./checkIn");
@@ -20,6 +21,7 @@ var _Wishlist = require("./wishlist");
 
 function initModels(sequelize) {
   var PrismaMigration = _PrismaMigration(sequelize, DataTypes);
+  var Asset = _Asset(sequelize, DataTypes);
   var Booking = _Booking(sequelize, DataTypes);
   var Category = _Category(sequelize, DataTypes);
   var CheckIn = _CheckIn(sequelize, DataTypes);
@@ -40,14 +42,16 @@ function initModels(sequelize) {
 
   HistoricalPeriod.belongsToMany(Place, { as: 'place_id_places', through: PlacePeriod, foreignKey: "period_id", otherKey: "place_id" });
   Place.belongsToMany(HistoricalPeriod, { as: 'period_id_historical_periods', through: PlacePeriod, foreignKey: "place_id", otherKey: "period_id" });
-  Category.belongsTo(Category, { as: "parent", foreignKey: "parent_id"});
-  Category.hasMany(Category, { as: "categories", foreignKey: "parent_id"});
   Place.belongsTo(Category, { as: "category", foreignKey: "category_id"});
   Category.hasMany(Place, { as: "places", foreignKey: "category_id"});
+  Asset.belongsTo(CheckIn, { as: "check_in", foreignKey: "check_in_id"});
+  CheckIn.hasMany(Asset, { as: "assets", foreignKey: "check_in_id"});
   HistoricalEvent.belongsTo(HistoricalPeriod, { as: "period", foreignKey: "period_id"});
   HistoricalPeriod.hasMany(HistoricalEvent, { as: "historical_events", foreignKey: "period_id"});
   PlacePeriod.belongsTo(HistoricalPeriod, { as: "period", foreignKey: "period_id"});
   HistoricalPeriod.hasMany(PlacePeriod, { as: "place_periods", foreignKey: "period_id"});
+  Asset.belongsTo(Location, { as: "location", foreignKey: "location_id"});
+  Location.hasMany(Asset, { as: "assets", foreignKey: "location_id"});
   CheckIn.belongsTo(Location, { as: "location", foreignKey: "location_id"});
   Location.hasMany(CheckIn, { as: "check_ins", foreignKey: "location_id"});
   Post.belongsTo(Location, { as: "location", foreignKey: "location_id"});
@@ -58,14 +62,20 @@ function initModels(sequelize) {
   Location.hasMany(TourItinerary, { as: "tour_itineraries", foreignKey: "location_id"});
   WishlistDetail.belongsTo(Location, { as: "location", foreignKey: "location_id"});
   Location.hasMany(WishlistDetail, { as: "wishlist_details", foreignKey: "location_id"});
+  Asset.belongsTo(Place, { as: "place", foreignKey: "place_id"});
+  Place.hasMany(Asset, { as: "assets", foreignKey: "place_id"});
   Location.belongsTo(Place, { as: "place", foreignKey: "place_id"});
   Place.hasMany(Location, { as: "locations", foreignKey: "place_id"});
   PlacePeriod.belongsTo(Place, { as: "place", foreignKey: "place_id"});
   Place.hasMany(PlacePeriod, { as: "place_periods", foreignKey: "place_id"});
+  Asset.belongsTo(Post, { as: "post", foreignKey: "post_id"});
+  Post.hasMany(Asset, { as: "assets", foreignKey: "post_id"});
   Location.belongsTo(Province, { as: "province", foreignKey: "province_id"});
   Province.hasMany(Location, { as: "locations", foreignKey: "province_id"});
   Province.belongsTo(Region, { as: "region", foreignKey: "region_id"});
   Region.hasMany(Province, { as: "provinces", foreignKey: "region_id"});
+  Asset.belongsTo(Review, { as: "review", foreignKey: "review_id"});
+  Review.hasMany(Asset, { as: "assets", foreignKey: "review_id"});
   Booking.belongsTo(Tour, { as: "tour", foreignKey: "tour_id"});
   Tour.hasMany(Booking, { as: "bookings", foreignKey: "tour_id"});
   TourItinerary.belongsTo(Tour, { as: "tour", foreignKey: "tour_id"});
@@ -87,6 +97,7 @@ function initModels(sequelize) {
 
   return {
     PrismaMigration,
+    Asset,
     Booking,
     Category,
     CheckIn,
