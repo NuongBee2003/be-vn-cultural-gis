@@ -35,10 +35,6 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.DATE(3),
       allowNull: false,
       defaultValue: "CURRENT_TIMESTAMP(3)"
-    },
-    images: {
-      type: DataTypes.JSON,
-      allowNull: true
     }
   }, {
     sequelize,

@@ -39,10 +39,6 @@ module.exports = function(sequelize, DataTypes) {
         model: 'places',
         key: 'id'
       }
-    },
-    images: {
-      type: DataTypes.JSON,
-      allowNull: true
     }
   }, {
     sequelize,
