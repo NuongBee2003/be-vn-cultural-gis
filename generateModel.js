@@ -1,10 +1,14 @@
 const SequelizeAuto = require('sequelize-auto');
-const auto = new SequelizeAuto("traveldb", "root", "", {
-  dialect: 'mysql',
-  directory: './src/models', 
-  additional: {
-    timestamps: false 
-  },
+const auto = new SequelizeAuto(
+  process.env.DATABASE_NAME,
+  process.env.DATABASE_USER,
+  process.env.DATABASE_PASSWORD,
+  {
+    dialect: 'mysql',
+    directory: './src/models', 
+    additional: {
+      timestamps: false 
+    },
   caseModel: 'p', 
   caseFile: 'c',  
   singularize: true, 
