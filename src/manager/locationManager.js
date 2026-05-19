@@ -36,7 +36,7 @@ class LocationManager {
         let parsedLimit;
         if (limit !== undefined) {
             parsedLimit = Number(limit);
-            if (!Number.isInteger(parsedLimit) || parsedLimit <= 0) {
+            if (Number.isNaN(parsedLimit) || !Number.isInteger(parsedLimit) || parsedLimit <= 0) {
                 const error = new Error('limit must be a positive integer');
                 error.statusCode = 400;
                 throw error;
@@ -53,7 +53,7 @@ class LocationManager {
         let parsedPlaceId;
         if (place_id !== undefined) {
             parsedPlaceId = Number(place_id);
-            if (!Number.isInteger(parsedPlaceId) || parsedPlaceId <= 0) {
+            if (Number.isNaN(parsedPlaceId) || !Number.isInteger(parsedPlaceId) || parsedPlaceId <= 0) {
                 const error = new Error('place_id must be a positive integer');
                 error.statusCode = 400;
                 throw error;
@@ -63,7 +63,7 @@ class LocationManager {
         let parsedProvinceId;
         if (province_id !== undefined) {
             parsedProvinceId = Number(province_id);
-            if (!Number.isInteger(parsedProvinceId) || parsedProvinceId <= 0) {
+            if (Number.isNaN(parsedProvinceId) || !Number.isInteger(parsedProvinceId) || parsedProvinceId <= 0) {
                 const error = new Error('province_id must be a positive integer');
                 error.statusCode = 400;
                 throw error;
