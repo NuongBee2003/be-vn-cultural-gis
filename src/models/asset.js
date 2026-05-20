@@ -16,24 +16,11 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       defaultValue: 0
     },
-    created_at: {
-      type: DataTypes.DATE(3),
-      allowNull: false,
-      defaultValue: "CURRENT_TIMESTAMP(3)"
-    },
     place_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
         model: 'places',
-        key: 'id'
-      }
-    },
-    location_id: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: 'locations',
         key: 'id'
       }
     },
@@ -52,14 +39,6 @@ module.exports = function(sequelize, DataTypes) {
         model: 'reviews',
         key: 'id'
       }
-    },
-    check_in_id: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: 'check_ins',
-        key: 'id'
-      }
     }
   }, {
     sequelize,
@@ -75,38 +54,24 @@ module.exports = function(sequelize, DataTypes) {
         ]
       },
       {
-        name: "assets_place_id_idx",
+        name: "assets_place_id_fkey",
         using: "BTREE",
         fields: [
           { name: "place_id" },
         ]
       },
       {
-        name: "assets_location_id_idx",
-        using: "BTREE",
-        fields: [
-          { name: "location_id" },
-        ]
-      },
-      {
-        name: "assets_post_id_idx",
+        name: "assets_post_id_fkey",
         using: "BTREE",
         fields: [
           { name: "post_id" },
         ]
       },
       {
-        name: "assets_review_id_idx",
+        name: "assets_review_id_fkey",
         using: "BTREE",
         fields: [
           { name: "review_id" },
-        ]
-      },
-      {
-        name: "assets_check_in_id_idx",
-        using: "BTREE",
-        fields: [
-          { name: "check_in_id" },
         ]
       },
     ]

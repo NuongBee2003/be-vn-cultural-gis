@@ -1,0 +1,537 @@
+{
+  "success": true,
+  "message": "OK",
+  "data": [
+    {
+      "id": 1,
+      "place_id": 1,
+      "district_id": 1,
+      "address": "26 Lê Thị Riêng, Phường Bến Thành, Quận 1",
+      "lat": "10.77153600",
+      "lng": "106.69234800"
+    },
+    {
+      "id": 2,
+      "place_id": 2,
+      "district_id": 3,
+      "address": "413-415 Nguyễn Trãi, Phường 7, Quận 5",
+      "lat": "10.75541200",
+      "lng": "106.67151000"
+    },
+    {
+      "id": 3,
+      "place_id": 3,
+      "district_id": 1,
+      "address": "34 Cô Bắc, Phường Cầu Ông Lãnh, Quận 1",
+      "lat": "10.76543200",
+      "lng": "106.69345600"
+    },
+    {
+      "id": 4,
+      "place_id": 4,
+      "district_id": 1,
+      "address": "212/C2 Nguyễn Trãi, Phường Nguyễn Cư Trinh, Quận 1",
+      "lat": "10.76451200",
+      "lng": "106.68874100"
+    },
+    {
+      "id": 5,
+      "place_id": 5,
+      "district_id": 5,
+      "address": "73 Lê Văn Linh, Phường 13, Quận 4",
+      "lat": "10.76012400",
+      "lng": "106.70561200"
+    },
+    {
+      "id": 6,
+      "place_id": 6,
+      "district_id": 2,
+      "address": "105 Trương Định, Phường 6, Quận 3",
+      "lat": "10.77941200",
+      "lng": "106.69124500"
+    },
+    {
+      "id": 7,
+      "place_id": 7,
+      "district_id": 1,
+      "address": "01 Công xã Paris, Q.1",
+      "lat": "10.77972000",
+      "lng": "106.69901500"
+    },
+    {
+      "id": 8,
+      "place_id": 8,
+      "district_id": 1,
+      "address": "135 Nam Kỳ Khởi Nghĩa, Q.1",
+      "lat": "10.77688900",
+      "lng": "106.69513900"
+    },
+    {
+      "id": 9,
+      "place_id": 9,
+      "district_id": 1,
+      "address": "131 Nam Kỳ Khởi Nghĩa, Q.1",
+      "lat": "10.77458100",
+      "lng": "106.69527700"
+    },
+    {
+      "id": 10,
+      "place_id": 10,
+      "district_id": 1,
+      "address": "02 Nguyễn Bỉnh Khiêm, Q.1",
+      "lat": "10.78810000",
+      "lng": "106.70490000"
+    },
+    {
+      "id": 11,
+      "place_id": 11,
+      "district_id": 1,
+      "address": "65 Lý Tự Trọng, Q.1",
+      "lat": "10.77604400",
+      "lng": "106.69956600"
+    },
+    {
+      "id": 12,
+      "place_id": 12,
+      "district_id": 1,
+      "address": "07 Công trường Lam Sơn, Q.1",
+      "lat": "10.77660200",
+      "lng": "106.70321200"
+    },
+    {
+      "id": 13,
+      "place_id": 13,
+      "district_id": 1,
+      "address": "86 Lê Thánh Tôn, Q.1",
+      "lat": "10.77661200",
+      "lng": "106.70132300"
+    },
+    {
+      "id": 14,
+      "place_id": 14,
+      "district_id": 1,
+      "address": "97A Phó Đức Chính, Q.1",
+      "lat": "10.76953100",
+      "lng": "106.69947800"
+    },
+    {
+      "id": 15,
+      "place_id": 15,
+      "district_id": 1,
+      "address": "05 Tôn Đức Thắng, Q.1",
+      "lat": "10.77651100",
+      "lng": "106.70776800"
+    },
+    {
+      "id": 16,
+      "place_id": 16,
+      "district_id": 1,
+      "address": "14 Lý Tự Trọng, Q.1",
+      "lat": "10.78160200",
+      "lng": "106.70243400"
+    },
+    {
+      "id": 17,
+      "place_id": 17,
+      "district_id": 1,
+      "address": "132 Đồng Khởi, Q.1",
+      "lat": "10.77686500",
+      "lng": "106.70275800"
+    },
+    {
+      "id": 18,
+      "place_id": 18,
+      "district_id": 1,
+      "address": "Nối Q.1 và Q.4",
+      "lat": "10.76686100",
+      "lng": "106.70295800"
+    },
+    {
+      "id": 19,
+      "place_id": 19,
+      "district_id": 2,
+      "address": "167 Pasteur, Q.3",
+      "lat": "10.78363600",
+      "lng": "106.69085200"
+    },
+    {
+      "id": 20,
+      "place_id": 20,
+      "district_id": 1,
+      "address": "01 Công xã Paris, Q.1",
+      "lat": "10.78201200",
+      "lng": "106.69542000"
+    },
+    {
+      "id": 21,
+      "place_id": 21,
+      "district_id": 3,
+      "address": "710 Nguyễn Trãi, Q.5",
+      "lat": "10.75345600",
+      "lng": "106.66123400"
+    },
+    {
+      "id": 22,
+      "place_id": 22,
+      "district_id": 3,
+      "address": "802 Nguyễn Trãi, Q.5",
+      "lat": "10.75231200",
+      "lng": "106.66014500"
+    },
+    {
+      "id": 23,
+      "place_id": 23,
+      "district_id": 3,
+      "address": "676 Nguyễn Trãi, Q.5",
+      "lat": "10.75363400",
+      "lng": "106.66258900"
+    },
+    {
+      "id": 24,
+      "place_id": 24,
+      "district_id": 3,
+      "address": "27 Phan Văn Khỏe, Q.5",
+      "lat": "10.74825600",
+      "lng": "106.65431200"
+    },
+    {
+      "id": 25,
+      "place_id": 25,
+      "district_id": 3,
+      "address": "12 Lão Tử, Q.5",
+      "lat": "10.75312300",
+      "lng": "106.66056700"
+    },
+    {
+      "id": 26,
+      "place_id": 26,
+      "district_id": 3,
+      "address": "710 Nguyễn Trãi, Q.5",
+      "lat": "10.75345600",
+      "lng": "106.66123400"
+    },
+    {
+      "id": 27,
+      "place_id": 27,
+      "district_id": 3,
+      "address": "264 Hải Thượng Lãn Ông, Q.5",
+      "lat": "10.75168900",
+      "lng": "106.65651200"
+    },
+    {
+      "id": 28,
+      "place_id": 28,
+      "district_id": 3,
+      "address": "586 Trần Hưng Đạo, Q.5",
+      "lat": "10.75314500",
+      "lng": "106.66597800"
+    },
+    {
+      "id": 29,
+      "place_id": 29,
+      "district_id": 3,
+      "address": "206 Trần Hưng Đạo, Q.5",
+      "lat": "10.75389000",
+      "lng": "106.66812300"
+    },
+    {
+      "id": 30,
+      "place_id": 30,
+      "district_id": 3,
+      "address": "118 Triệu Quang Phục, Q.5",
+      "lat": "10.75422300",
+      "lng": "106.66445600"
+    },
+    {
+      "id": 31,
+      "place_id": 31,
+      "district_id": 3,
+      "address": "184 Hồng Bàng, Q.5",
+      "lat": "10.75514200",
+      "lng": "106.66212400"
+    },
+    {
+      "id": 32,
+      "place_id": 32,
+      "district_id": 3,
+      "address": "121 Hàm Tử, Q.5",
+      "lat": "10.74853400",
+      "lng": "106.66286700"
+    },
+    {
+      "id": 33,
+      "place_id": 33,
+      "district_id": 6,
+      "address": "Tháp Mười, Q.6",
+      "lat": "10.74955600",
+      "lng": "106.65089000"
+    },
+    {
+      "id": 34,
+      "place_id": 34,
+      "district_id": 9,
+      "address": "475 Cách Mạng Tháng 8, Q.10",
+      "lat": "10.78456700",
+      "lng": "106.66581200"
+    },
+    {
+      "id": 35,
+      "place_id": 35,
+      "district_id": 10,
+      "address": "161/35/20 Lạc Long Quân, Q.11",
+      "lat": "10.76823400",
+      "lng": "106.64156700"
+    },
+    {
+      "id": 36,
+      "place_id": 36,
+      "district_id": 10,
+      "address": "1408 Đường 3/2, Q.11",
+      "lat": "10.76512300",
+      "lng": "106.64345600"
+    },
+    {
+      "id": 37,
+      "place_id": 37,
+      "district_id": 9,
+      "address": "190 Nguyễn Văn Tăng, Q.9",
+      "lat": "10.83540000",
+      "lng": "106.77650000"
+    },
+    {
+      "id": 38,
+      "place_id": 38,
+      "district_id": 9,
+      "address": "102 Tăng Nhơn Phú, Q.9",
+      "lat": "10.82510000",
+      "lng": "106.76540000"
+    },
+    {
+      "id": 39,
+      "place_id": 39,
+      "district_id": 4,
+      "address": "P. Trường Thọ, Thủ Đức",
+      "lat": "10.84430000",
+      "lng": "106.75890000"
+    },
+    {
+      "id": 40,
+      "place_id": 40,
+      "district_id": 4,
+      "address": "P. Linh Xuân, Thủ Đức",
+      "lat": "10.86540000",
+      "lng": "106.75540000"
+    },
+    {
+      "id": 41,
+      "place_id": 41,
+      "district_id": 4,
+      "address": "26 Đường số 17, Thủ Đức",
+      "lat": "10.85430000",
+      "lng": "106.74560000"
+    },
+    {
+      "id": 42,
+      "place_id": 42,
+      "district_id": 13,
+      "address": "204 Phan Đăng Lưu, Bình Thạnh",
+      "lat": "10.79810000",
+      "lng": "106.69630000"
+    },
+    {
+      "id": 43,
+      "place_id": 43,
+      "district_id": 13,
+      "address": "01 Vũ Tùng, Bình Thạnh",
+      "lat": "10.80340000",
+      "lng": "106.69610000"
+    },
+    {
+      "id": 44,
+      "place_id": 44,
+      "district_id": 14,
+      "address": "107/1 Nguyễn Văn Nghi, Gò Vấp",
+      "lat": "10.82270000",
+      "lng": "106.68720000"
+    },
+    {
+      "id": 45,
+      "place_id": 45,
+      "district_id": 15,
+      "address": "18 Mai Văn Ngọc, Phú Nhuận",
+      "lat": "10.79380000",
+      "lng": "106.68530000"
+    },
+    {
+      "id": 46,
+      "place_id": 46,
+      "district_id": 16,
+      "address": "565 Lạc Long Quân, Tân Bình",
+      "lat": "10.77660000",
+      "lng": "106.64930000"
+    },
+    {
+      "id": 47,
+      "place_id": 47,
+      "district_id": 8,
+      "address": "Phường 7, Quận 8",
+      "lat": "10.72580000",
+      "lng": "106.66640000"
+    },
+    {
+      "id": 48,
+      "place_id": 48,
+      "district_id": 9,
+      "address": "Tăng Nhơn Phú, Q.9",
+      "lat": "10.83540000",
+      "lng": "106.77650000"
+    },
+    {
+      "id": 49,
+      "place_id": 49,
+      "district_id": 22,
+      "address": "Huỳnh Tấn Phát, Nhà Bè",
+      "lat": "10.67230000",
+      "lng": "106.71760000"
+    },
+    {
+      "id": 50,
+      "place_id": 50,
+      "district_id": 2,
+      "address": "287/70 Nguyễn Đình Chiểu, Q.3",
+      "lat": "10.77850000",
+      "lng": "106.68730000"
+    },
+    {
+      "id": 51,
+      "place_id": 51,
+      "district_id": 19,
+      "address": "Cần Giờ",
+      "lat": "10.40450000",
+      "lng": "106.85230000"
+    },
+    {
+      "id": 52,
+      "place_id": 52,
+      "district_id": 5,
+      "address": "05 Nguyễn Tất Thành, Q.4",
+      "lat": "10.76810000",
+      "lng": "106.70580000"
+    },
+    {
+      "id": 53,
+      "place_id": 53,
+      "district_id": 11,
+      "address": "Sân bay Tân Sơn Nhất",
+      "lat": "10.81600000",
+      "lng": "106.65750000"
+    },
+    {
+      "id": 54,
+      "place_id": 54,
+      "district_id": 17,
+      "address": "Phú Thọ Hòa, Tân Phú",
+      "lat": "10.78180000",
+      "lng": "106.63480000"
+    },
+    {
+      "id": 55,
+      "place_id": 55,
+      "district_id": 15,
+      "address": "102/11 Huỳnh Văn Bánh, Phú Nhuận",
+      "lat": "10.79150000",
+      "lng": "106.68110000"
+    },
+    {
+      "id": 56,
+      "place_id": 56,
+      "district_id": 1,
+      "address": "29/15 Trần Hưng Đạo, Q.1",
+      "lat": "10.76740000",
+      "lng": "106.69310000"
+    },
+    {
+      "id": 57,
+      "place_id": 57,
+      "district_id": 4,
+      "address": "Lê Văn Việt, Thủ Đức",
+      "lat": "10.84150000",
+      "lng": "106.77810000"
+    },
+    {
+      "id": 58,
+      "place_id": 58,
+      "district_id": 21,
+      "address": "Xuân Thới Thượng, Hóc Môn",
+      "lat": "10.87550000",
+      "lng": "106.58220000"
+    },
+    {
+      "id": 59,
+      "place_id": 59,
+      "district_id": 18,
+      "address": "Bình Chánh",
+      "lat": "10.72010000",
+      "lng": "106.55440000"
+    },
+    {
+      "id": 60,
+      "place_id": 60,
+      "district_id": 2,
+      "address": "28 Trương Định, Q.3",
+      "lat": "10.77880000",
+      "lng": "106.69180000"
+    },
+    {
+      "id": 61,
+      "place_id": 61,
+      "district_id": 2,
+      "address": "159 Nam Kỳ Khởi Nghĩa, Q.3",
+      "lat": "10.78010000",
+      "lng": "106.68880000"
+    },
+    {
+      "id": 62,
+      "place_id": 62,
+      "district_id": 2,
+      "address": "110 Nguyễn Thị Minh Khai, Q.3",
+      "lat": "10.77780000",
+      "lng": "106.69080000"
+    },
+    {
+      "id": 63,
+      "place_id": 63,
+      "district_id": 3,
+      "address": "235 Nguyễn Văn Cừ, Q.5",
+      "lat": "10.76210000",
+      "lng": "106.68230000"
+    },
+    {
+      "id": 64,
+      "place_id": 64,
+      "district_id": 13,
+      "address": "9/1 Nguyễn Thiện Thuật, Bình Thạnh",
+      "lat": "10.80120000",
+      "lng": "106.69230000"
+    },
+    {
+      "id": 65,
+      "place_id": 65,
+      "district_id": 1,
+      "address": "Công viên Tao Đàn, Q.1",
+      "lat": "10.77580000",
+      "lng": "106.69010000"
+    },
+    {
+      "id": 66,
+      "place_id": 66,
+      "district_id": 14,
+      "address": "Sông Vàm Thuật, Gò Vấp",
+      "lat": "10.83050000",
+      "lng": "106.67120000"
+    }
+  ],
+  "meta": {
+    "count": 66
+  }
+}

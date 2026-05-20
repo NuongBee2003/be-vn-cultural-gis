@@ -1,122 +1,80 @@
 const { Op } = require('sequelize');
 const db = require('../models');
+const HttpError = require('../utils/httpError');
+const { parseViewportQuery } = require('../utils/locationViewport');
 
 const Location = db.Location;
-const ALLOWED_STATUS = ['pending', 'accepted', 'rejected'];
 
 class LocationManager {
-    parseViewportQuery(query) {
-        const { bbox, limit, status, place_id, province_id } = query;
-
-        if (!bbox) {
-            const error = new Error('bbox is required. Expected format: minLng,minLat,maxLng,maxLat');
-            error.statusCode = 400;
-            throw error;
+    parsePositiveInt(value, fieldName) {
+        const parsed = Number(value);
+        if (Number.isNaN(parsed) || !Number.isInteger(parsed) || parsed <= 0) {
+            throw new HttpError(400, `${fieldName} must be a positive integer`);
         }
-
-        const parts = String(bbox).split(',').map((value) => Number(value.trim()));
-        if (parts.length !== 4 || parts.some((value) => Number.isNaN(value))) {
-            const error = new Error('bbox must contain 4 numeric values: minLng,minLat,maxLng,maxLat');
-            error.statusCode = 400;
-            throw error;
-        }
-
-        const [minLng, minLat, maxLng, maxLat] = parts;
-        if (minLng >= maxLng || minLat >= maxLat) {
-            const error = new Error('bbox is invalid. minLng < maxLng and minLat < maxLat are required');
-            error.statusCode = 400;
-            throw error;
-        }
-        if (minLng < -180 || maxLng > 180 || minLat < -90 || maxLat > 90) {
-            const error = new Error('bbox coordinates are out of range');
-            error.statusCode = 400;
-            throw error;
-        }
-
-        let parsedLimit;
-        if (limit !== undefined) {
-            parsedLimit = Number(limit);
-            if (Number.isNaN(parsedLimit) || !Number.isInteger(parsedLimit) || parsedLimit <= 0) {
-                const error = new Error('limit must be a positive integer');
-                error.statusCode = 400;
-                throw error;
-            }
-        }
-
-        const parsedStatus = status || 'accepted';
-        if (!ALLOWED_STATUS.includes(parsedStatus)) {
-            const error = new Error(`status must be one of: ${ALLOWED_STATUS.join(', ')}`);
-            error.statusCode = 400;
-            throw error;
-        }
-
-        let parsedPlaceId;
-        if (place_id !== undefined) {
-            parsedPlaceId = Number(place_id);
-            if (Number.isNaN(parsedPlaceId) || !Number.isInteger(parsedPlaceId) || parsedPlaceId <= 0) {
-                const error = new Error('place_id must be a positive integer');
-                error.statusCode = 400;
-                throw error;
-            }
-        }
-
-        let parsedProvinceId;
-        if (province_id !== undefined) {
-            parsedProvinceId = Number(province_id);
-            if (Number.isNaN(parsedProvinceId) || !Number.isInteger(parsedProvinceId) || parsedProvinceId <= 0) {
-                const error = new Error('province_id must be a positive integer');
-                error.statusCode = 400;
-                throw error;
-            }
-        }
-
-        return {
-            bounds: { minLng, minLat, maxLng, maxLat },
-            limit: parsedLimit,
-            status: parsedStatus,
-            place_id: parsedPlaceId,
-            province_id: parsedProvinceId
-        };
-    }
-
-    async getAllLocations() {
-        return Location.findAll();
+        return parsed;
     }
 
     async getLocationsByViewport(query) {
-        const parsed = this.parseViewportQuery(query);
-        const { bounds, limit, status, place_id, province_id } = parsed;
+        const parsed = parseViewportQuery(query);
+        const { bounds, limit, place_id, district_id } = parsed;
 
         const where = {
             lat: { [Op.between]: [bounds.minLat, bounds.maxLat] },
-            lng: { [Op.between]: [bounds.minLng, bounds.maxLng] },
-            status
+            lng: { [Op.between]: [bounds.minLng, bounds.maxLng] }
         };
 
         if (place_id !== undefined) {
             where.place_id = place_id;
         }
 
-        if (province_id !== undefined) {
-            where.province_id = province_id;
+        if (district_id !== undefined) {
+            where.district_id = district_id;
         }
 
         return Location.findAll({
-            attributes: ['id', 'lat', 'lng', 'address', 'place_id', 'province_id', 'status'],
+            attributes: ['id', 'lat', 'lng', 'address', 'place_id', 'district_id'],
             where,
+            include: [
+                {
+                    model: db.Place,
+                    as: 'place',
+                    attributes: ['id', 'name'],
+                    required: true,
+                    include: [
+                        {
+                            model: db.Category,
+                            as: 'category',
+                            attributes: ['id', 'name', 'icon_marker'],
+                            required: false
+                        }
+                    ]
+                }
+            ],
             ...(limit ? { limit } : {})
         });
     }
 
     async createLocation(payload) {
-        const { lat, lng, province_id, status, address, place_id } = payload;
+        const { lat, lng, address, place_id, district_id } = payload;
+
+        const parsedPlaceId = this.parsePositiveInt(place_id, 'place_id');
+        const parsedDistrictId = this.parsePositiveInt(district_id, 'district_id');
+
+        const parsedLat = lat !== undefined && lat !== null ? Number(lat) : null;
+        const parsedLng = lng !== undefined && lng !== null ? Number(lng) : null;
+        if (parsedLat !== null && (Number.isNaN(parsedLat) || parsedLat < -90 || parsedLat > 90)) {
+            throw new HttpError(400, 'lat must be a number between -90 and 90');
+        }
+        if (parsedLng !== null && (Number.isNaN(parsedLng) || parsedLng < -180 || parsedLng > 180)) {
+            throw new HttpError(400, 'lng must be a number between -180 and 180');
+        }
+
         return Location.create({
-            lat,
-            lng,
-            province_id,
-            status,
+            lat: parsedLat,
+            lng: parsedLng,
             address,
-            place_id
+            place_id: parsedPlaceId,
+            district_id: parsedDistrictId
         });
     }
 
@@ -126,6 +84,29 @@ class LocationManager {
 
     async deleteLocation(location) {
         return location.destroy();
+    }
+
+    async getLocationsByCategory(categoryId) {
+        return Location.findAll({
+            attributes: ['id', 'lat', 'lng', 'address', 'place_id', 'district_id'],
+            include: [
+                {
+                    model: db.Place,
+                    as: 'place',
+                    attributes: ['id', 'name', 'category_id'],
+                    where: { category_id: categoryId },
+                    required: true,
+                    include: [
+                        {
+                            model: db.Category,
+                            as: 'category',
+                            attributes: ['id', 'name', 'icon_marker'],
+                            required: false
+                        }
+                    ]
+                }
+            ]
+        });
     }
 }
 

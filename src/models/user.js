@@ -17,7 +17,7 @@ module.exports = function(sequelize, DataTypes) {
       unique: "users_email_key"
     },
     password_hash: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING(191),
       allowNull: false
     },
     role: {
@@ -26,13 +26,13 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: "user"
     },
     avatar: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING(191),
       allowNull: true
     },
     created_at: {
       type: DataTypes.DATE(3),
       allowNull: false,
-      defaultValue: Sequelize.literal('CURRENT_TIMESTAMP(3)')
+      defaultValue: "CURRENT_TIMESTAMP(3)"
     }
   }, {
     sequelize,

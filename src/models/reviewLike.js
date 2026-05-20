@@ -1,25 +1,21 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('Place', {
-    id: {
-      autoIncrement: true,
+  return sequelize.define('ReviewLike', {
+    user_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      primaryKey: true
-    },
-    name: {
-      type: DataTypes.STRING(255),
-      allowNull: false
-    },
-    description: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    category_id: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
+      primaryKey: true,
       references: {
-        model: 'categories',
+        model: 'users',
+        key: 'id'
+      }
+    },
+    review_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      primaryKey: true,
+      references: {
+        model: 'reviews',
         key: 'id'
       }
     },
@@ -30,7 +26,7 @@ module.exports = function(sequelize, DataTypes) {
     }
   }, {
     sequelize,
-    tableName: 'places',
+    tableName: 'review_likes',
     timestamps: false,
     indexes: [
       {
@@ -38,14 +34,15 @@ module.exports = function(sequelize, DataTypes) {
         unique: true,
         using: "BTREE",
         fields: [
-          { name: "id" },
+          { name: "user_id" },
+          { name: "review_id" },
         ]
       },
       {
-        name: "places_category_id_fkey",
+        name: "review_likes_review_id_fkey",
         using: "BTREE",
         fields: [
-          { name: "category_id" },
+          { name: "review_id" },
         ]
       },
     ]

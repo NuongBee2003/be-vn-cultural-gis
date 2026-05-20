@@ -16,22 +16,13 @@ module.exports = function(sequelize, DataTypes) {
       }
     },
     title: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING(100),
       allowNull: false
-    },
-    description: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    is_public: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: 0
     },
     created_at: {
       type: DataTypes.DATE(3),
       allowNull: false,
-      defaultValue: Sequelize.literal('CURRENT_TIMESTAMP(3)')
+      defaultValue: "CURRENT_TIMESTAMP(3)"
     }
   }, {
     sequelize,
@@ -47,7 +38,7 @@ module.exports = function(sequelize, DataTypes) {
         ]
       },
       {
-        name: "wishlists_user_id_idx",
+        name: "wishlists_user_id_fkey",
         using: "BTREE",
         fields: [
           { name: "user_id" },

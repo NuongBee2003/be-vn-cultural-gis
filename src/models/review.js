@@ -9,7 +9,7 @@ module.exports = function(sequelize, DataTypes) {
     },
     user_id: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
       references: {
         model: 'users',
         key: 'id'
@@ -17,14 +17,14 @@ module.exports = function(sequelize, DataTypes) {
     },
     location_id: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
       references: {
         model: 'locations',
         key: 'id'
       }
     },
     rating: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.SMALLINT,
       allowNull: false
     },
     comment: {
@@ -34,7 +34,7 @@ module.exports = function(sequelize, DataTypes) {
     created_at: {
       type: DataTypes.DATE(3),
       allowNull: false,
-      defaultValue: Sequelize.literal('CURRENT_TIMESTAMP(3)')
+      defaultValue: "CURRENT_TIMESTAMP(3)"
     }
   }, {
     sequelize,
@@ -50,14 +50,14 @@ module.exports = function(sequelize, DataTypes) {
         ]
       },
       {
-        name: "reviews_user_id_idx",
+        name: "reviews_user_id_fkey",
         using: "BTREE",
         fields: [
           { name: "user_id" },
         ]
       },
       {
-        name: "reviews_location_id_idx",
+        name: "reviews_location_id_fkey",
         using: "BTREE",
         fields: [
           { name: "location_id" },

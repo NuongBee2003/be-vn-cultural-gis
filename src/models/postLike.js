@@ -1,27 +1,32 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('PlacePeriod', {
-    place_id: {
+  return sequelize.define('PostLike', {
+    user_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true,
       references: {
-        model: 'places',
+        model: 'users',
         key: 'id'
       }
     },
-    period_id: {
+    post_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true,
       references: {
-        model: 'historical_periods',
+        model: 'posts',
         key: 'id'
       }
+    },
+    created_at: {
+      type: DataTypes.DATE(3),
+      allowNull: false,
+      defaultValue: "CURRENT_TIMESTAMP(3)"
     }
   }, {
     sequelize,
-    tableName: 'place_periods',
+    tableName: 'post_likes',
     timestamps: false,
     indexes: [
       {
@@ -29,15 +34,15 @@ module.exports = function(sequelize, DataTypes) {
         unique: true,
         using: "BTREE",
         fields: [
-          { name: "place_id" },
-          { name: "period_id" },
+          { name: "user_id" },
+          { name: "post_id" },
         ]
       },
       {
-        name: "place_periods_period_id_fkey",
+        name: "post_likes_post_id_fkey",
         using: "BTREE",
         fields: [
-          { name: "period_id" },
+          { name: "post_id" },
         ]
       },
     ]
