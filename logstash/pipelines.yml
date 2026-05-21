@@ -3,3 +3,6 @@
 
 - pipeline.id: places-jdbc
   path.config: "/usr/share/logstash/pipeline/places-jdbc.conf"
+
+- pipeline.id: place-locations-jdbc
+  path.config: "/usr/share/logstash/pipeline/place-locations-jdbc.conf"

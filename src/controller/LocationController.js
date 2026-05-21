@@ -70,13 +70,21 @@ class LocationController {
             throw new HttpError(400, 'lng must be a number between -180 and 180');
         }
 
-        return Location.create({
+        const location = await Location.create({
             lat: parsedLat,
             lng: parsedLng,
             address,
             place_id: parsedPlaceId,
             district_id: parsedDistrictId,
         }, transaction ? { transaction } : undefined);
+
+        // Make sure Logstash JDBC (tracking places.updated_at) can detect changes
+        await db.Place.update(
+            { updated_at: new Date() },
+            { where: { id: parsedPlaceId }, ...(transaction ? { transaction } : {}) }
+        );
+
+        return location;
     }
 
     async getLocationById(id) {
@@ -84,7 +92,12 @@ class LocationController {
     }
 
     async deleteLocation(location) {
-        return location.destroy();
+        const placeId = location.place_id;
+        const deleted = await location.destroy();
+        if (placeId) {
+            await db.Place.update({ updated_at: new Date() }, { where: { id: placeId } });
+        }
+        return deleted;
     }
 
     async getLocationsByCategory(categoryId) {

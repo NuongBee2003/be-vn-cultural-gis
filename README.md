@@ -202,6 +202,87 @@ Ví dụ test nhanh:
 
 2) Update place qua API `PUT /api/v1/place/:id` -> backend sẽ cập nhật `updated_at` và re-index.
 
+### Index "địa chỉ + toạ độ" để search ra đúng vị trí
+
+Nếu bạn muốn người dùng gõ tìm kiếm địa chỉ và trả về **đúng marker (lat/lng + address)**, thì nên index theo **từng Location** (mỗi document = 1 location) và denormalize thêm thông tin Place (name/description/category).
+
+Repo đã có sẵn pipeline:
+
+- `place-locations-jdbc.conf` -> index mặc định: `place_locations`
+- Chạy mỗi 5 phút, tracking theo `places.updated_at`.
+
+Vì bảng `locations` hiện không có `updated_at`, backend đã được chỉnh để **mỗi lần tạo/xoá location sẽ bump `places.updated_at`**, giúp Logstash incremental bắt được thay đổi.
+
+#### Vì sao Kibana thấy field "lạ"?
+
+Logstash mặc định thêm các field như:
+
+- `@timestamp`
+- `@version`
+
+Đây là bình thường. Với pipeline `place_locations`, repo đã remove `@version` để nhìn gọn hơn. Bạn có thể hide các field system trong Discover.
+
+#### Tạo mapping cho `place_locations` (khuyến nghị)
+
+Tạo index trước khi Logstash ghi dữ liệu để có kiểu `geo_point` và analyzer tiếng Việt.
+
+```bash
+curl -X PUT "http://localhost:9200/place_locations" -H "Content-Type: application/json" -d "{\
+	\"settings\": {\
+		\"analysis\": {\
+			\"filter\": {\
+				\"vi_fold\": {\
+					\"type\": \"asciifolding\",\
+					\"preserve_original\": true\
+				}\
+			},\
+			\"analyzer\": {\
+				\"vi_text\": {\
+					\"type\": \"custom\",\
+					\"tokenizer\": \"standard\",\
+					\"filter\": [\"lowercase\", \"vi_fold\"]\
+				}\
+			}\
+		}\
+	},\
+	\"mappings\": {\
+		\"properties\": {\
+			\"location_id\": {\"type\": \"integer\"},\
+			\"place_id\": {\"type\": \"integer\"},\
+			\"name\": {\"type\": \"text\", \"analyzer\": \"vi_text\"},\
+			\"description\": {\"type\": \"text\", \"analyzer\": \"vi_text\"},\
+			\"address\": {\"type\": \"text\", \"analyzer\": \"vi_text\"},\
+			\"category_id\": {\"type\": \"integer\"},\
+			\"district_id\": {\"type\": \"integer\"},\
+			\"lat\": {\"type\": \"float\"},\
+			\"lng\": {\"type\": \"float\"},\
+			\"geo\": {\"type\": \"geo_point\"},\
+			\"updated_at\": {\"type\": \"date\"}\
+		}\
+	}\
+}"
+```
+
+#### Kibana Data View
+
+- Tạo Data View pattern: `place_locations`
+- Vào Discover sẽ thấy các field: `name`, `description`, `address`, `lat`, `lng`, `geo`
+
+#### Query mẫu (gõ không dấu + fuzzy typo)
+
+```bash
+curl -X POST "http://localhost:9200/place_locations/_search?pretty" -H "Content-Type: application/json" -d "{\
+	\"query\": {\
+		\"multi_match\": {\
+			\"query\": \"chua mot cot\",\
+			\"fields\": [\"name^3\", \"address^2\", \"description\"],\
+			\"fuzziness\": \"AUTO\",\
+			\"operator\": \"and\"\
+		}\
+	}\
+}"
+```
+
 ## Vietnamese Search (Elasticsearch mapping)
 
 Mục tiêu tìm kiếm:
