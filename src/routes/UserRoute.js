@@ -1,7 +1,7 @@
 const express = require('express');
 const route = express.Router();
-const UserController = require('../controller/UserController');
+const UserManager = require('../manager/userManager');
 const { requireAuth, requireRole } = require("../middleware");
 
-route.get('/', requireAuth,requireRole('user'), UserController.getAll);
+route.get('/', requireAuth,requireRole('user'), UserManager.getAll);
 module.exports = route;

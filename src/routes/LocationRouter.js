@@ -1,6 +1,6 @@
 const express = require('express');
 const route = express.Router();
-const LocationController = require('../controller/LocationController');
+const LocationManager = require('../manager/locationManager');
 
 /**
  * @openapi
@@ -110,10 +110,10 @@ const LocationController = require('../controller/LocationController');
  *                 $ref: '#/components/schemas/ErrorResponse'
  */
 
-route.post('/geo', LocationController.getLocationsByGeo);
-route.get('/category/:categoryId', LocationController.getLocationsByCategory);
-route.get('/:id', LocationController.getLocationById);
-route.post('/', LocationController.create);
-route.delete('/:id', LocationController.delete);
+route.post('/geo', LocationManager.getLocationsByGeo);
+route.get('/category/:categoryId', LocationManager.getLocationsByCategory);
+route.get('/:id', LocationManager.getLocationById);
+route.post('/', LocationManager.create);
+route.delete('/:id', LocationManager.delete);
 
 module.exports = route;

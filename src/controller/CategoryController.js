@@ -1,63 +1,57 @@
 const db = require('../models');
-const Category = db.Category;
 
-class CategoryController{
-    async getAllCategories(req,res){
-        try {
-            const categories = await Category.findAll();
-            res.status(200).json(categories);
-        } catch (error) {            
-            console.log("ERROR: " + error);
-            res.status(500).json({ message: "Internal server error" });
+class CategoryController {
+    parsePositiveInt(value, fieldName) {
+        const parsed = Number(value);
+        if (Number.isNaN(parsed) || !Number.isInteger(parsed) || parsed <= 0) {
+            const err = new Error(`${fieldName} must be a positive integer`);
+            err.statusCode = 400;
+            throw err;
         }
+        return parsed;
     }
-    async create(req,res){
-        try {
-            const { name,icon_marker } = req.body;
-            const category = await Category.create(
-                { 
-                    name,
-                    icon_marker
-                }
-            );
-            res.status(201).json(category);
-        } catch (error) {
-            console.log("ERROR: " + error);
-            res.status(500).json({ message: "Internal server error" });
-        }
+
+    async getAllCategories() {
+        return db.Category.findAll();
     }
-    async delete(req,res){
-        try {
-            const { id } = req.params;
-            const category = await Category.findByPk(id);
-            if (!category) {
-                return res.status(404).json({ message: "Category not found" });
-            }
-            await category.destroy();
-            res.status(200).json({ message: "Category deleted successfully" });
+
+    async createCategory(payload) {
+        const { name, icon_marker } = payload || {};
+        if (!name || typeof name !== 'string') {
+            const err = new Error('name is required');
+            err.statusCode = 400;
+            throw err;
         }
-        catch (error) {
-            console.log("ERROR: " + error);
-            res.status(500).json({ message: "Internal server error" });
-        }
+        return db.Category.create({ name, icon_marker });
     }
-    async update(req,res){
-        try {
-            const { id } = req.params;
-            const { name,icon_marker } = req.body;
-            const category = await Category.findByPk(id);
-            if (!category) {
-                return res.status(404).json({ message: "Category not found" });
-            }
-            category.name = name;
-            category.icon_marker = icon_marker;
-            await category.save();
-            res.status(200).json(category);
+
+    async updateCategory(id, payload) {
+        const categoryId = this.parsePositiveInt(id, 'id');
+        const { name, icon_marker } = payload || {};
+
+        const category = await db.Category.findByPk(categoryId);
+        if (!category) {
+            const err = new Error('Category not found');
+            err.statusCode = 404;
+            throw err;
         }
-        catch (error) {
-            console.log("ERROR: " + error);
-            res.status(500).json({ message: "Internal server error" });
+
+        if (name !== undefined) category.name = name;
+        if (icon_marker !== undefined) category.icon_marker = icon_marker;
+        await category.save();
+        return category;
+    }
+
+    async deleteCategory(id) {
+        const categoryId = this.parsePositiveInt(id, 'id');
+        const category = await db.Category.findByPk(categoryId);
+        if (!category) {
+            const err = new Error('Category not found');
+            err.statusCode = 404;
+            throw err;
         }
+        await category.destroy();
+        return true;
     }
 }
 
