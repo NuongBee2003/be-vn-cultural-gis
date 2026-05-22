@@ -15,6 +15,21 @@ class PlaceManager {
         }
     }
 
+    async getDetail(req, res) {
+        try {
+            const place = await placeController.getPlaceDetail(req.params.id);
+            return res.status(200).json(place);
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.log('ERROR: ' + error);
+            const statusCode = error?.statusCode;
+            if (typeof statusCode === 'number' && statusCode >= 400 && statusCode < 500) {
+                return res.status(statusCode).json({ message: error.message });
+            }
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+    }
+
     async create(req, res) {
         try {
             const { locations } = req.body || {};

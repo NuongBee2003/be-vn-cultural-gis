@@ -21,7 +21,11 @@ const swaggerSpec = swaggerJSDoc({
 				'Tài liệu API (Swagger/OpenAPI) cho hệ thống bản đồ văn hoá. Swagger được generate từ comment trong router.',
 		},
 		servers: [{ url: `http://localhost:${process.env.PORT || 5000}`, description: 'Local dev' }],
-		tags: [{ name: 'Location', description: 'API liên quan đến vị trí/marker' }],
+		tags: [
+			{ name: 'Location', description: 'API liên quan đến vị trí/marker' },
+			{ name: 'Place', description: 'API liên quan đến địa điểm (place)' },
+			{ name: 'Search', description: 'API tìm kiếm (Elasticsearch)' },
+		],
 		components: {
 			schemas,
 		},

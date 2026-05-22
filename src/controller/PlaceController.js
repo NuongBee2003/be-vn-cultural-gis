@@ -26,6 +26,202 @@ class PlaceController {
         return db.Place.findAll();
     }
 
+    buildPlaceDetailResponse(placeInstance) {
+        if (!placeInstance) return null;
+
+        const place = placeInstance.toJSON ? placeInstance.toJSON() : placeInstance;
+
+        const toNumberOrNull = (value) => {
+            if (value === null || value === undefined || value === '') return null;
+            const n = Number(value);
+            return Number.isNaN(n) ? null : n;
+        };
+
+        const images = Array.isArray(place.assets)
+            ? place.assets
+                  .map((a) => ({
+                      id: a.id,
+                      url: a.url,
+                      is_primary: a.is_primary,
+                  }))
+                  .sort((a, b) => Number(Boolean(b.is_primary)) - Number(Boolean(a.is_primary)))
+            : [];
+
+        const locations = Array.isArray(place.locations)
+            ? place.locations.map((l) => ({
+                  id: l.id,
+                                    lat: toNumberOrNull(l.lat),
+                                    lng: toNumberOrNull(l.lng),
+                  address: l.address,
+                  district: l.district
+                      ? {
+                            id: l.district.id,
+                            name: l.district.name,
+                        }
+                      : null,
+              }))
+            : [];
+
+        const reviews = [];
+        if (Array.isArray(place.locations)) {
+            for (const loc of place.locations) {
+                if (!Array.isArray(loc.reviews)) continue;
+
+                for (const r of loc.reviews) {
+                    const likedBy = Array.isArray(r.review_likes)
+                        ? r.review_likes
+                              .map((rl) => rl.user)
+                              .filter(Boolean)
+                              .map((u) => ({ id: u.id, username: u.username, avatar: u.avatar }))
+                        : [];
+
+                    const uniqueLikedBy = Array.from(
+                        new Map(likedBy.map((u) => [u.id, u])).values()
+                    );
+
+                    const reviewImages = Array.isArray(r.assets)
+                        ? r.assets.map((a) => ({ id: a.id, url: a.url }))
+                        : [];
+
+                    reviews.push({
+                        id: r.id,
+                        rating: r.rating,
+                        comment: r.comment,
+                        created_at: r.created_at,
+                        user: r.user
+                            ? {
+                                  id: r.user.id,
+                                  username: r.user.username,
+                                  avatar: r.user.avatar,
+                              }
+                            : null,
+                        like_count: uniqueLikedBy.length,
+                        liked_by: uniqueLikedBy,
+                        images: reviewImages,
+                        location: {
+                            id: loc.id,
+                            lat: toNumberOrNull(loc.lat),
+                            lng: toNumberOrNull(loc.lng),
+                            address: loc.address,
+                        },
+                    });
+                }
+            }
+        }
+
+        const reviewCount = reviews.length;
+        const ratingAvg =
+            reviewCount === 0
+                ? null
+                : Number(
+                      (
+                          reviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) /
+                          reviewCount
+                      ).toFixed(2)
+                  );
+
+        return {
+            id: place.id,
+            name: place.name,
+            description: place.description,
+            category: place.category
+                ? {
+                      id: place.category.id,
+                      name: place.category.name,
+                      icon_marker: place.category.icon_marker,
+                  }
+                : null,
+            images,
+            locations,
+            review_count: reviewCount,
+            rating_avg: ratingAvg,
+            reviews: reviews.sort(
+                (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
+            ),
+        };
+    }
+
+    async getPlaceDetail(id) {
+        const placeId = this.parsePositiveInt(id, 'id');
+        const place = await db.Place.findByPk(placeId, {
+            attributes: ['id', 'name', 'description', 'category_id', 'created_at', 'updated_at'],
+            include: [
+                {
+                    model: db.Category,
+                    as: 'category',
+                    attributes: ['id', 'name', 'icon_marker'],
+                    required: false,
+                },
+                {
+                    model: db.Asset,
+                    as: 'assets',
+                    attributes: ['id', 'url', 'is_primary'],
+                    required: false,
+                    where: {
+                        post_id: null,
+                        review_id: null,
+                    },
+                },
+                {
+                    model: db.Location,
+                    as: 'locations',
+                    attributes: ['id', 'lat', 'lng', 'address', 'district_id'],
+                    required: false,
+                    include: [
+                        {
+                            model: db.District,
+                            as: 'district',
+                            attributes: ['id', 'name'],
+                            required: false,
+                        },
+                        {
+                            model: db.Review,
+                            as: 'reviews',
+                            attributes: ['id', 'user_id', 'location_id', 'rating', 'comment', 'created_at'],
+                            required: false,
+                            include: [
+                                {
+                                    model: db.User,
+                                    as: 'user',
+                                    attributes: ['id', 'username', 'avatar'],
+                                    required: false,
+                                },
+                                {
+                                    model: db.Asset,
+                                    as: 'assets',
+                                    attributes: ['id', 'url'],
+                                    required: false,
+                                },
+                                {
+                                    model: db.ReviewLike,
+                                    as: 'review_likes',
+                                    attributes: ['user_id'],
+                                    required: false,
+                                    include: [
+                                        {
+                                            model: db.User,
+                                            as: 'user',
+                                            attributes: ['id', 'username', 'avatar'],
+                                            required: false,
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        });
+
+        if (!place) {
+            const err = new Error('Place not found');
+            err.statusCode = 404;
+            throw err;
+        }
+
+        return this.buildPlaceDetailResponse(place);
+    }
+
     async getPlaceWithLocations(id) {
         const placeId = this.parsePositiveInt(id, 'id');
         return db.Place.findByPk(placeId, {

@@ -53,7 +53,7 @@ curl -X POST "http://localhost:5000/api/v1/location/geo" \
 
 ## Elasticsearch (Docker)
 
-Repo này chưa tích hợp Elasticsearch vào API hiện tại, nhưng bạn có thể bật Elasticsearch sẵn để dùng cho tính năng search sau này.
+Repo này có tích hợp **API tìm kiếm bằng Elasticsearch** (tuỳ chọn). Nếu bạn không bật Elasticsearch, các endpoint search sẽ trả `503`.
 
 Mặc định trong cấu hình Docker của repo này, **Elasticsearch/Kibana đang tắt security** để dễ chạy local, nên **không cần username/password**.
 
@@ -129,9 +129,32 @@ curl -X GET "http://localhost:9200/places/_search" -H "Content-Type: application
 
 ### Env var (optional)
 
-Nếu bạn cần cấu hình URL Elasticsearch cho app (tương lai), dùng biến:
+Nếu bạn cần cấu hình URL Elasticsearch cho app, dùng biến:
 
 - `ELASTICSEARCH_URL` (default: `http://localhost:9200`)
+
+### Search API (Elasticsearch)
+
+Endpoint:
+
+- `GET /api/v1/search/place-locations`
+
+Yêu cầu:
+
+- Set `ELASTICSEARCH_URL=http://localhost:9200`
+- Index mặc định: `place_locations` (override bằng `ELASTICSEARCH_PLACE_LOCATIONS_INDEX`)
+
+Search theo text (multi_match name/address/description):
+
+```bash
+curl "http://localhost:<PORT>/api/v1/search/place-locations?q=chua&size=5"
+```
+
+Search theo toạ độ (geo_distance):
+
+```bash
+curl "http://localhost:<PORT>/api/v1/search/place-locations?lat=10.769531&lng=106.699478&radius=3km&size=5"
+```
 
 ## Logstash (Docker)
 

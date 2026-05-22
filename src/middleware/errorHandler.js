@@ -4,7 +4,7 @@ module.exports = (err, req, res, next) => {
   const statusCode = err.statusCode || err.status || 500;
 
   const isServerError = statusCode >= 500;
-  const message = isServerError ? 'Internal Server Error' : err.message;
+  const message = isServerError && !err.expose ? 'Internal Server Error' : err.message;
 
   const code = err.code || (isServerError ? 'INTERNAL_ERROR' : 'BAD_REQUEST');
   const details = err.details;
