@@ -6,7 +6,6 @@ class CategoryManager {
             const categories = await categoryController.getAllCategories();
             return res.status(200).json(categories);
         } catch (error) {
-            // eslint-disable-next-line no-console
             console.log('ERROR: ' + error);
             return res.status(500).json({ message: 'Internal server error' });
         }
@@ -17,7 +16,6 @@ class CategoryManager {
             const category = await categoryController.createCategory(req.body);
             return res.status(201).json(category);
         } catch (error) {
-            // eslint-disable-next-line no-console
             console.log('ERROR: ' + error);
             const statusCode = error?.statusCode;
             if (typeof statusCode === 'number' && statusCode >= 400 && statusCode < 500) {
@@ -32,7 +30,6 @@ class CategoryManager {
             const category = await categoryController.updateCategory(req.params.id, req.body);
             return res.status(200).json(category);
         } catch (error) {
-            // eslint-disable-next-line no-console
             console.log('ERROR: ' + error);
             const statusCode = error?.statusCode;
             if (typeof statusCode === 'number' && statusCode >= 400 && statusCode < 500) {
@@ -47,7 +44,6 @@ class CategoryManager {
             await categoryController.deleteCategory(req.params.id);
             return res.status(200).json({ message: 'Category deleted successfully' });
         } catch (error) {
-            // eslint-disable-next-line no-console
             console.log('ERROR: ' + error);
             const statusCode = error?.statusCode;
             if (typeof statusCode === 'number' && statusCode >= 400 && statusCode < 500) {

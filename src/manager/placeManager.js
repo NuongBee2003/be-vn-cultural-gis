@@ -1,7 +1,6 @@
 const placeController = require('../controller/PlaceController');
 const locationController = require('../controller/LocationController');
 const transactionController = require('../controller/TransactionController');
-const { safeIndexPlace, safeDeletePlace } = require('../services/placeIndexer');
 
 class PlaceManager {
     async getAllPlaces(req, res) {
@@ -38,7 +37,8 @@ class PlaceManager {
             try {
                 transaction = await transactionController.begin();
 
-                const createdPlace = await placeController.createPlace(req.body, { transaction });
+                const createdPlace = await 
+                placeController.createPlace(req.body, { transaction });
 
                 if (locations !== undefined) {
                     if (!Array.isArray(locations)) {
@@ -59,9 +59,6 @@ class PlaceManager {
                 }
 
                 await transactionController.commit(transaction);
-
-                // Real-time sync to Elasticsearch (non-blocking)
-                void safeIndexPlace(createdPlace);
 
                 if (locations !== undefined) {
                     const placeWithLocations = await placeController.getPlaceWithLocations(createdPlace.id);
@@ -94,7 +91,6 @@ class PlaceManager {
     async update(req, res) {
         try {
             const place = await placeController.updatePlace(req.params.id, req.body);
-            void safeIndexPlace(place);
             return res.status(200).json(place);
         } catch (error) {
             // eslint-disable-next-line no-console
@@ -110,7 +106,6 @@ class PlaceManager {
     async delete(req, res) {
         try {
             const deleted = await placeController.deletePlace(req.params.id);
-            void safeDeletePlace(deleted.id);
             return res.status(200).json({ message: 'Place deleted successfully' });
         } catch (error) {
             // eslint-disable-next-line no-console

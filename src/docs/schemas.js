@@ -117,4 +117,31 @@ module.exports = {
 			},
 		},
 	},
+
+	LocationCreateRequest: {
+		type: 'object',
+		required: ['district_id'],
+		properties: {
+			lat: { type: 'number', minimum: -90, maximum: 90, example: 10.77584 },
+			lng: { type: 'number', minimum: -180, maximum: 180, example: 106.70098 },
+			address: { type: 'string', example: 'Phường Bến Thành, Quận 1, TP.HCM' },
+			district_id: { type: 'integer', minimum: 1, example: 1 },
+		},
+	},
+
+	PlaceCreateRequest: {
+		type: 'object',
+		required: ['name'],
+		properties: {
+			name: { type: 'string', example: 'Chợ Bến Thành' },
+			description: { type: 'string', example: 'Ngôi chợ lịch sử ở trung tâm Sài Gòn' },
+			category_id: { type: 'integer', example: 1 },
+			status: { type: 'integer', example: 1, description: 'Trạng thái địa điểm (ví dụ: 1 = hoạt động)' },
+			locations: {
+				type: 'array',
+				items: { $ref: '#/components/schemas/LocationCreateRequest' },
+				description: 'Danh sách các vị trí (locations) thuộc địa điểm này.',
+			},
+		},
+	},
 };

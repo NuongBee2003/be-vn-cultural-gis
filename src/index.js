@@ -20,7 +20,13 @@ const swaggerSpec = swaggerJSDoc({
 			description:
 				'Tài liệu API (Swagger/OpenAPI) cho hệ thống bản đồ văn hoá. Swagger được generate từ comment trong router.',
 		},
-		servers: [{ url: `http://localhost:${process.env.PORT || 5000}`, description: 'Local dev' }],
+		servers: [
+			{ url: `http://localhost:${process.env.PORT || 5000}`, description: 'Local dev' },
+			{
+				url: 'https://xenaa-116-102-235-47.run.pinggy-free.link',
+				description: 'Public (Pinggy tunnel)',
+			},
+		],
 		tags: [
 			{ name: 'Location', description: 'API liên quan đến vị trí/marker' },
 			{ name: 'Place', description: 'API liên quan đến địa điểm (place)' },

@@ -4,10 +4,11 @@ const HttpError = require('../utils/httpError');
 const { sendSuccess } = require('../utils/apiResponse');
 
 class LocationManager {
+
     getLocationById = asyncHandler(async (req, res) => {
         const id = Number(req.params.id);
         if (!Number.isInteger(id) || id <= 0) {
-            throw new HttpError(400, 'id must be a positive integer');
+            throw new HttpError(400, 'id phải là một số nguyên dương');
         }
         const location = await locationController.getLocationById(id);
         if (!location) {
@@ -21,22 +22,18 @@ class LocationManager {
     });
 
     getLocationsByGeo = asyncHandler(async (req, res) => {
-        const input = {
-            ...(req.query || {}),
-            ...(req.body || {}),
-        };
+        const input = req.body || {};
 
         const locations = await locationController.getLocationsByViewport(input);
+
         return sendSuccess(res, {
             statusCode: 200,
             message: 'OK',
             data: locations,
             meta: {
                 count: locations.length,
-                limit: input.limit !== undefined ? Number(input.limit) : undefined,
+                limit: input.limit,
                 bbox: input.bbox,
-                place_id: input.place_id !== undefined ? Number(input.place_id) : undefined,
-                district_id: input.district_id !== undefined ? Number(input.district_id) : undefined,
             },
         });
     });
@@ -44,7 +41,7 @@ class LocationManager {
     getLocationsByCategory = asyncHandler(async (req, res) => {
         const categoryId = Number(req.params.categoryId);
         if (!Number.isInteger(categoryId) || categoryId <= 0) {
-            throw new HttpError(400, 'categoryId must be a positive integer');
+            throw new HttpError(400, 'categoryId phải là một số nguyên dương');
         }
 
         const locations = await locationController.getLocationsByCategory(categoryId);
@@ -71,7 +68,7 @@ class LocationManager {
     delete = asyncHandler(async (req, res) => {
         const id = Number(req.params.id);
         if (!Number.isInteger(id) || id <= 0) {
-            throw new HttpError(400, 'id must be a positive integer');
+            throw new HttpError(400, 'id phải là một số nguyên dương');
         }
         const location = await locationController.getLocationById(id);
         if (!location) {
