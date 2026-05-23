@@ -213,7 +213,7 @@ class SearchController {
             }
 
             // Remove weak noisy results
-            return score >= maxScore * 0.1;
+            return score >= maxScore * 0.15;
         });
 
         return {
