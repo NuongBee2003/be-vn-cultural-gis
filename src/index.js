@@ -23,7 +23,7 @@ const swaggerSpec = swaggerJSDoc({
 		servers: [
 			{ url: `http://localhost:${process.env.PORT || 5000}`, description: 'Local dev' },
 			{
-				url: 'https://xenaa-116-102-235-47.run.pinggy-free.link',
+				url: 'https://unlumped-inexpugnable-brandee.ngrok-free.dev/',
 				description: 'Public (Pinggy tunnel)',
 			},
 		],

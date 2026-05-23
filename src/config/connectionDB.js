@@ -8,6 +8,14 @@ const sequelize = new Sequelize(
     dialect: "mysql",
     host: process.env.DATABASE_HOST || "localhost",
     port: process.env.DATABASE_PORT ? Number(process.env.DATABASE_PORT) : 3306,
+    timezone: '+07:00',
+    pool: {
+      afterCreate: (connection, callback) => {
+        connection.query("SET time_zone = '+07:00'", (error) => {
+          callback(error, connection);
+        });
+      },
+    },
     logging: false,
   }
 );

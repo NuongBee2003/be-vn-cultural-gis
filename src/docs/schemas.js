@@ -136,7 +136,6 @@ module.exports = {
 			name: { type: 'string', example: 'Chợ Bến Thành' },
 			description: { type: 'string', example: 'Ngôi chợ lịch sử ở trung tâm Sài Gòn' },
 			category_id: { type: 'integer', example: 1 },
-			status: { type: 'integer', example: 1, description: 'Trạng thái địa điểm (ví dụ: 1 = hoạt động)' },
 			locations: {
 				type: 'array',
 				items: { $ref: '#/components/schemas/LocationCreateRequest' },

@@ -11,51 +11,19 @@ const SearchManager = require('../manager/searchManager');
  *       - Search
  *     summary: Search place locations (Elasticsearch)
  *     description: |
- *       Tìm kiếm marker theo **text** hoặc theo **toạ độ** (geo_distance) trong index `place_locations`.
+ *       Tìm kiếm marker theo `query` trong index `place_locations`.
  *
- *       - Text search: truyền `q`
- *       - Geo search: truyền `lat,lng` (hoặc `q` dạng `lat,lng`) + `radius`
+ *       - Search query: truyền `query`
  *
  *       Yêu cầu bật Elasticsearch bằng cách set `ELASTICSEARCH_URL`.
  *     parameters:
  *       - in: query
- *         name: q
+ *         name: query
  *         schema:
  *           type: string
- *         required: false
- *         description: Text query, hoặc chuỗi dạng `lat,lng` (ví dụ `10.769531,106.699478`).
+ *         required: true
+ *         description: Nội dung tìm kiếm theo name/address/description.
  *         example: chua
- *       - in: query
- *         name: lat
- *         schema:
- *           type: number
- *         required: false
- *         description: Latitude (nếu muốn geo search).
- *         example: 10.769531
- *       - in: query
- *         name: lng
- *         schema:
- *           type: number
- *         required: false
- *         description: Longitude (nếu muốn geo search).
- *         example: 106.699478
- *       - in: query
- *         name: radius
- *         schema:
- *           type: string
- *           default: 200m
- *         required: false
- *         description: Bán kính geo_distance (ví dụ `200m`, `3km`).
- *         example: 3km
- *       - in: query
- *         name: size
- *         schema:
- *           type: integer
- *           default: 20
- *           minimum: 1
- *         required: false
- *         description: Số lượng kết quả trả về.
- *         example: 5
  *     responses:
  *       200:
  *         description: OK
@@ -108,23 +76,14 @@ const SearchManager = require('../manager/searchManager');
  *                 meta:
  *                   type: object
  *                   properties:
- *                     mode:
- *                       type: string
- *                       example: geo
  *                     total:
  *                       type: integer
  *                       example: 34
- *                     size:
- *                       type: integer
- *                       example: 5
- *                     radius:
- *                       type: string
- *                       example: 3km
  *                     index:
  *                       type: string
  *                       example: place_locations
  *       400:
- *         description: Invalid request (missing q or invalid lat/lng)
+ *         description: Invalid request (missing query)
  *       503:
  *         description: Elasticsearch is not enabled/available
  */

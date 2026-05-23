@@ -147,14 +147,10 @@ Yêu cầu:
 Search theo text (multi_match name/address/description):
 
 ```bash
-curl "http://localhost:<PORT>/api/v1/search/place-locations?q=chua&size=5"
+curl "http://localhost:<PORT>/api/v1/search/place-locations?query=chua"
 ```
 
-Search theo toạ độ (geo_distance):
-
-```bash
-curl "http://localhost:<PORT>/api/v1/search/place-locations?lat=10.769531&lng=106.699478&radius=3km&size=5"
-```
+Search hiện hỗ trợ gõ có dấu/không dấu tốt hơn nhờ index thêm các field `_folded` cho `name`, `address`, `description`. Nếu index `place_locations` đã có sẵn trước đó, bạn nên reindex để các field này có dữ liệu đầy đủ.
 
 ## Logstash (Docker)
 
@@ -195,7 +191,7 @@ docker compose up -d --build
 
 Biến môi trường JDBC (có default trong compose; có thể override bằng `.env`):
 
-- `JDBC_CONNECTION_STRING` (default: `jdbc:mysql://host.docker.internal:3306/vn_cultural_gis?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC`)
+- `JDBC_CONNECTION_STRING` (default: `jdbc:mysql://host.docker.internal:3306/vn_cultural_gis?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh`)
 - `JDBC_USER` (default: `root`)
 - `JDBC_PASSWORD` (default: `1234`)
 
@@ -247,7 +243,7 @@ Logstash mặc định thêm các field như:
 
 #### Tạo mapping cho `place_locations` (khuyến nghị)
 
-Tạo index trước khi Logstash ghi dữ liệu để có kiểu `geo_point` và analyzer tiếng Việt.
+Tạo index trước khi Logstash ghi dữ liệu để có kiểu `geo_point` và analyzer tiếng Việt. Pipeline hiện cũng sinh thêm các field `_folded` để hỗ trợ tìm kiếm không dấu ở mức tốt hơn.
 
 ```bash
 curl -X PUT "http://localhost:9200/place_locations" -H "Content-Type: application/json" -d "{\

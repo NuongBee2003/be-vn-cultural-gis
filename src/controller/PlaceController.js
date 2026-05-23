@@ -48,18 +48,36 @@ class PlaceController {
             : [];
 
         const locations = Array.isArray(place.locations)
-            ? place.locations.map((l) => ({
-                  id: l.id,
-                                    lat: toNumberOrNull(l.lat),
-                                    lng: toNumberOrNull(l.lng),
-                  address: l.address,
-                  district: l.district
-                      ? {
-                            id: l.district.id,
-                            name: l.district.name,
-                        }
-                      : null,
-              }))
+            ? place.locations.map((l) => {
+                  const locationReviews = Array.isArray(l.reviews) ? l.reviews : [];
+                  const locationReviewCount = locationReviews.length;
+                  const locationRatingAvg =
+                      locationReviewCount === 0
+                          ? null
+                          : Number(
+                                (
+                                    locationReviews.reduce(
+                                        (sum, review) => sum + Number(review.rating || 0),
+                                        0
+                                    ) / locationReviewCount
+                                ).toFixed(2)
+                            );
+
+                  return {
+                      id: l.id,
+                      lat: toNumberOrNull(l.lat),
+                      lng: toNumberOrNull(l.lng),
+                      address: l.address,
+                      review_count: locationReviewCount,
+                      rating_avg: locationRatingAvg,
+                      district: l.district
+                          ? {
+                                id: l.district.id,
+                                name: l.district.name,
+                            }
+                          : null,
+                  };
+              })
             : [];
 
         const reviews = [];
@@ -252,7 +270,7 @@ class PlaceController {
 
     async createPlace(payload, options = {}) {
         const { transaction } = options;
-        const { name, description, category_id, status } = payload || {};
+        const { name, description, category_id } = payload || {};
 
         if (!name || typeof name !== 'string') {
             const err = new Error('name is required');
@@ -265,7 +283,6 @@ class PlaceController {
                 name,
                 description,
                 category_id,
-                status,
             },
             transaction ? { transaction } : undefined
         );
@@ -281,15 +298,14 @@ class PlaceController {
             throw err;
         }
 
-        const { name, description, category_id, status } = payload || {};
+        const { name, description, category_id } = payload || {};
 
         const updates = {};
         if (name !== undefined) updates.name = name;
         if (description !== undefined) updates.description = description;
         if (category_id !== undefined) updates.category_id = category_id;
-        if (status !== undefined) updates.status = status;
 
-        updates.updated_at = new Date();
+        updates.updated_at = db.sequelize.literal('CURRENT_TIMESTAMP(3)');
 
         await place.update(updates);
         return place;

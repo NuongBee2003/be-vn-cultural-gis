@@ -14,7 +14,7 @@ route.get('/', PlaceManager.getAllPlaces);
  *     description: |
  *       Trả về chi tiết 1 địa điểm (place), gồm:
  *       - Ảnh của place (assets)
- *       - Danh sách locations
+ *       - Danh sách locations, mỗi location có `review_count` và `rating_avg`
  *       - Reviews (comment/rating), kèm user, ảnh review (nếu có)
  *       - Like count và danh sách user đã like từng review
  *     parameters:

@@ -40,7 +40,7 @@ services:
       - xpack.monitoring.enabled=false
       - ELASTICSEARCH_PLACES_INDEX=${ELASTICSEARCH_PLACES_INDEX:-places}
       - ELASTICSEARCH_PLACE_LOCATIONS_INDEX=${ELASTICSEARCH_PLACE_LOCATIONS_INDEX:-place_locations}
-      - JDBC_CONNECTION_STRING=${JDBC_CONNECTION_STRING:-jdbc:mysql://host.docker.internal:3306/vn_cultural_gis?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+      - JDBC_CONNECTION_STRING=${JDBC_CONNECTION_STRING:-jdbc:mysql://host.docker.internal:3306/vn_cultural_gis?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh}
       - JDBC_USER=${JDBC_USER:-root}
       - JDBC_PASSWORD=${JDBC_PASSWORD:-1234}
     volumes:

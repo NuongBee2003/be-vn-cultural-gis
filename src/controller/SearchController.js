@@ -5,144 +5,232 @@ class SearchController {
         return process.env.ELASTICSEARCH_PLACE_LOCATIONS_INDEX || 'place_locations';
     }
 
-    parseNumber(value, fieldName) {
-        const parsed = Number(value);
-        if (Number.isNaN(parsed)) {
-            const err = new Error(`${fieldName} must be a number`);
+    foldVietnameseText(value) {
+        return String(value || '')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/đ/g, 'd')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    async searchPlaceLocations({
+        query,
+        page = 1,
+        limit = 20,
+    }) {
+        const text =
+            typeof query === 'string'
+                ? query.trim()
+                : '';
+
+        if (!text) {
+            const err = new Error('query is required');
+
             err.statusCode = 400;
             err.code = 'VALIDATION_ERROR';
             err.expose = true;
+
             throw err;
         }
-        return parsed;
-    }
 
-    parseOptionalPositiveInt(value, fieldName, fallback) {
-        if (value === undefined || value === null || value === '') return fallback;
-        const parsed = Number(value);
-        if (Number.isNaN(parsed) || !Number.isInteger(parsed) || parsed <= 0) {
-            const err = new Error(`${fieldName} must be a positive integer`);
-            err.statusCode = 400;
-            err.code = 'VALIDATION_ERROR';
-            err.expose = true;
-            throw err;
-        }
-        return parsed;
-    }
-
-    tryParseLatLngFromQuery(q) {
-        if (!q || typeof q !== 'string') return null;
-        const m = q.trim().match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/);
-        if (!m) return null;
-        const lat = Number(m[1]);
-        const lon = Number(m[2]);
-        if (Number.isNaN(lat) || Number.isNaN(lon)) return null;
-        if (lat < -90 || lat > 90) return null;
-        if (lon < -180 || lon > 180) return null;
-        return { lat, lon };
-    }
-
-    async searchPlaceLocations({ q, lat, lng, radius = '200m', size = 20 }) {
         if (!isEnabled()) {
-            const err = new Error('Elasticsearch is not enabled. Set ELASTICSEARCH_URL.');
+            const err = new Error(
+                'Elasticsearch is not enabled. Set ELASTICSEARCH_URL.'
+            );
+
             err.statusCode = 503;
             err.code = 'ELASTICSEARCH_DISABLED';
             err.expose = true;
+
             throw err;
         }
 
         const client = getClient();
+
         if (!client) {
-            const err = new Error('Elasticsearch client is not available');
+            const err = new Error(
+                'Elasticsearch client is not available'
+            );
+
             err.statusCode = 503;
             err.code = 'ELASTICSEARCH_UNAVAILABLE';
             err.expose = true;
+
             throw err;
         }
 
         const index = this.getPlaceLocationsIndex();
-        const finalSize = this.parseOptionalPositiveInt(size, 'size', 20);
 
-        const parsedFromQ = this.tryParseLatLngFromQuery(q);
+        const foldedText =
+            this.foldVietnameseText(text);
 
-        let query;
-        let sort;
-        let mode;
+        const from =
+            Math.max(page - 1, 0) * limit;
 
-        if (lat !== undefined || lng !== undefined) {
-            const finalLat = this.parseNumber(lat, 'lat');
-            const finalLon = this.parseNumber(lng, 'lng');
-            mode = 'geo';
-            query = {
-                geo_distance: {
-                    distance: radius,
-                    geo: { lat: finalLat, lon: finalLon },
-                },
-            };
-            sort = [
-                {
-                    _geo_distance: {
-                        geo: { lat: finalLat, lon: finalLon },
-                        order: 'asc',
-                        unit: 'm',
-                    },
-                },
-            ];
-        } else if (parsedFromQ) {
-            mode = 'geo';
-            query = {
-                geo_distance: {
-                    distance: radius,
-                    geo: { lat: parsedFromQ.lat, lon: parsedFromQ.lon },
-                },
-            };
-            sort = [
-                {
-                    _geo_distance: {
-                        geo: { lat: parsedFromQ.lat, lon: parsedFromQ.lon },
-                        order: 'asc',
-                        unit: 'm',
-                    },
-                },
-            ];
-        } else {
-            const text = typeof q === 'string' ? q.trim() : '';
-            if (!text) {
-                const err = new Error('q is required (text) or provide lat,lng');
-                err.statusCode = 400;
-                err.code = 'VALIDATION_ERROR';
-                err.expose = true;
-                throw err;
-            }
-
-            mode = 'text';
-            query = {
-                multi_match: {
-                    query: text,
-                    fields: ['name^3', 'address^2', 'description'],
-                    fuzziness: 'AUTO',
-                    operator: 'and',
-                    prefix_length: 1,
-                },
-            };
-        }
+        const fuzziness =
+            foldedText.length <= 3
+                ? 0
+                : 'AUTO';
 
         const result = await client.search({
             index,
-            size: finalSize,
-            query,
-            ...(sort ? { sort } : {}),
+
+            from,
+            size: limit,
+
+            timeout: '2s',
+
+            min_score: 1,
+
+            _source: [
+                'name',
+                'address',
+                'description',
+                'thumbnail',
+                'location',
+            ],
+
+            query: {
+                bool: {
+                    should: [
+                        // Exact keyword match
+                        {
+                            term: {
+                                'name.keyword': {
+                                    value: text,
+                                    boost: 100,
+                                },
+                            },
+                        },
+
+                        // Exact folded keyword match
+                        {
+                            term: {
+                                'name_folded.keyword': {
+                                    value: foldedText,
+                                    boost: 90,
+                                },
+                            },
+                        },
+
+                        // Phrase match
+                        {
+                            match_phrase: {
+                                name: {
+                                    query: text,
+                                    boost: 20,
+                                },
+                            },
+                        },
+
+                        // Phrase folded
+                        {
+                            match_phrase: {
+                                name_folded: {
+                                    query: foldedText,
+                                    boost: 18,
+                                },
+                            },
+                        },
+
+                        // Main search
+                        {
+                            multi_match: {
+                                query: text,
+
+                                fields: [
+                                    'name^8',
+                                    'address^3',
+                                ],
+
+                                fuzziness,
+                                prefix_length: 1,
+
+                                minimum_should_match:
+                                    '70%',
+                            },
+                        },
+
+                        // Folded search
+                        {
+                            multi_match: {
+                                query: foldedText,
+
+                                fields: [
+                                    'name_folded^10',
+                                    'address_folded^4',
+                                ],
+
+                                fuzziness,
+                                prefix_length: 1,
+
+                                minimum_should_match:
+                                    '70%',
+                            },
+                        },
+
+                        // Description search
+                        {
+                            match: {
+                                description: {
+                                    query: text,
+                                    boost: 0.2,
+                                },
+                            },
+                        },
+
+                        // Folded description
+                        {
+                            match: {
+                                description_folded: {
+                                    query: foldedText,
+                                    boost: 0.2,
+                                },
+                            },
+                        },
+                    ],
+
+                    minimum_should_match: 1,
+                },
+            },
         });
 
-        const hits = result?.hits?.hits || [];
+        const hits =
+            result?.hits?.hits || [];
+
+        const maxScore =
+            hits[0]?._score || 0;
+
+        // Dynamic score filter
+        const filteredHits = hits.filter((h) => {
+            const score = h?._score || 0;
+
+            // Keep top result always
+            if (score === maxScore) {
+                return true;
+            }
+
+            // Remove weak noisy results
+            return score >= maxScore * 0.1;
+        });
 
         return {
-            mode,
-            total: typeof result?.hits?.total === 'number' ? result.hits.total : result?.hits?.total?.value,
-            items: hits.map((h) => ({
-                id: h?._id,
-                score: h?._score,
-                ...((h && h._source) || {}),
+            page,
+            limit,
+
+            total:
+                typeof result?.hits?.total ===
+                'number'
+                    ? result.hits.total
+                    : result?.hits?.total?.value || 0,
+
+            items: filteredHits.map((hit) => ({
+                id: hit?._id,
+                score: hit?._score,
+
+                ...((hit && hit._source) || {}),
             })),
         };
     }
