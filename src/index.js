@@ -28,12 +28,21 @@ const swaggerSpec = swaggerJSDoc({
 			},
 		],
 		tags: [
+			{ name: 'Auth', description: 'API đăng nhập/đăng ký' },
+			{ name: 'User', description: 'API liên quan đến người dùng' },
 			{ name: 'Location', description: 'API liên quan đến vị trí/marker' },
 			{ name: 'Place', description: 'API liên quan đến địa điểm (place)' },
 			{ name: 'Search', description: 'API tìm kiếm (Elasticsearch)' },
 		],
 		components: {
 			schemas,
+			securitySchemes: {
+				bearerAuth: {
+					type: 'http',
+					scheme: 'bearer',
+					bearerFormat: 'JWT',
+				},
+			},
 		},
 	},
 	apis: ['./src/routes/*.js'],
