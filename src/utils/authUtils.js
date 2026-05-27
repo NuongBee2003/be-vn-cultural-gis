@@ -1,7 +1,11 @@
 const jwt = require('jsonwebtoken');
 
 const parsedRounds = Number.parseInt(process.env.BCRYPT_ROUNDS || '10', 10);
-const BCRYPT_ROUNDS = Number.isFinite(parsedRounds) && parsedRounds > 0 ? parsedRounds : 10;
+const MIN_BCRYPT_ROUNDS = 10;
+const BCRYPT_ROUNDS =
+    Number.isFinite(parsedRounds) && parsedRounds >= MIN_BCRYPT_ROUNDS
+        ? parsedRounds
+        : MIN_BCRYPT_ROUNDS;
 
 const toUserResponse = (user) => ({
     id: user.id,

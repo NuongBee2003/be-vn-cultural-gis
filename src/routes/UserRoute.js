@@ -12,7 +12,7 @@ const userUpdateLimiter = rateLimit({
     message: { message: 'Too many update requests, please try again later' },
 });
 
-route.get('/', requireAuth,requireRole('user'), UserManager.getAll);
+route.get('/', requireAuth, requireRole('user'), UserManager.getAll);
 /**
  * @openapi
  * /api/v1/user/me:
@@ -42,5 +42,5 @@ route.get('/', requireAuth,requireRole('user'), UserManager.getAll);
  *       404:
  *         description: User not found
  */
-route.put('/me', requireAuth, userUpdateLimiter, UserManager.updateMe);
+route.put('/me', userUpdateLimiter, requireAuth, UserManager.updateMe);
 module.exports = route;

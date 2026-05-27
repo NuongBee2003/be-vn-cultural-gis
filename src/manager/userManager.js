@@ -37,9 +37,9 @@ class UserManager {
                 return res.status(404).json({ message: 'User not found' });
             }
 
-            if (email && email !== existingUser.email) {
+            if (email !== undefined) {
                 const userByEmail = await userController.getUserByEmail(email);
-                if (userByEmail) {
+                if (userByEmail && userByEmail.id !== existingUser.id) {
                     return res.status(409).json({ message: 'Email already in use' });
                 }
             }
