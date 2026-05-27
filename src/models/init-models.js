@@ -50,6 +50,8 @@ function initModels(sequelize) {
   Place.hasMany(Location, { as: "locations", foreignKey: "place_id"});
   Asset.belongsTo(Post, { as: "post", foreignKey: "post_id"});
   Post.hasMany(Asset, { as: "assets", foreignKey: "post_id"});
+  Comment.belongsTo(Comment, { as: "parent", foreignKey: "parent_id"});
+  Comment.hasMany(Comment, { as: "replies", foreignKey: "parent_id"});
   Comment.belongsTo(Post, { as: "post", foreignKey: "post_id"});
   Post.hasMany(Comment, { as: "comments", foreignKey: "post_id"});
   PostLike.belongsTo(Post, { as: "post", foreignKey: "post_id"});

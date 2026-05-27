@@ -23,6 +23,14 @@ module.exports = function(sequelize, DataTypes) {
         key: 'id'
       }
     },
+    parent_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'comments',
+        key: 'id'
+      }
+    },
     content: {
       type: DataTypes.TEXT,
       allowNull: false
@@ -57,6 +65,13 @@ module.exports = function(sequelize, DataTypes) {
         using: "BTREE",
         fields: [
           { name: "user_id" },
+        ]
+      },
+      {
+        name: "comments_parent_id_fkey",
+        using: "BTREE",
+        fields: [
+          { name: "parent_id" },
         ]
       },
     ]

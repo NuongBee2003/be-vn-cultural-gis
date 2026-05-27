@@ -31,6 +31,7 @@ const swaggerSpec = swaggerJSDoc({
 			{ name: 'Location', description: 'API liên quan đến vị trí/marker' },
 			{ name: 'Place', description: 'API liên quan đến địa điểm (place)' },
 			{ name: 'Search', description: 'API tìm kiếm (Elasticsearch)' },
+			{ name: 'Comment', description: 'API liên quan đến comment bài viết' },
 		],
 		components: {
 			schemas,
