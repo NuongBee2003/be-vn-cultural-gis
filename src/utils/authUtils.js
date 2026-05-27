@@ -1,11 +1,14 @@
 const jwt = require('jsonwebtoken');
 
-const parsedRounds = Number.parseInt(process.env.BCRYPT_ROUNDS || '10', 10);
+const parsedBcryptRounds = Number.parseInt(process.env.BCRYPT_ROUNDS || '10', 10);
 const MIN_BCRYPT_ROUNDS = 10;
 const BCRYPT_ROUNDS =
-    Number.isFinite(parsedRounds) && parsedRounds >= MIN_BCRYPT_ROUNDS
-        ? parsedRounds
+    Number.isFinite(parsedBcryptRounds) && parsedBcryptRounds >= MIN_BCRYPT_ROUNDS
+        ? parsedBcryptRounds
         : MIN_BCRYPT_ROUNDS;
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const isValidEmail = (email) => typeof email === 'string' && EMAIL_REGEX.test(email);
 
 const toUserResponse = (user) => ({
     id: user.id,
@@ -32,4 +35,5 @@ module.exports = {
     BCRYPT_ROUNDS,
     toUserResponse,
     signAuthToken,
+    isValidEmail,
 };

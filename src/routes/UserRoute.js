@@ -12,7 +12,15 @@ const userUpdateLimiter = rateLimit({
     message: { message: 'Too many update requests, please try again later' },
 });
 
-route.get('/', requireAuth, requireRole('user'), UserManager.getAll);
+const userListLimiter = rateLimit({
+    windowMs: Number.parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10),
+    max: Number.parseInt(process.env.RATE_LIMIT_USER_LIST_MAX || '60', 10),
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: 'Too many requests, please try again later' },
+});
+
+route.get('/', userListLimiter, requireAuth, requireRole('user'), UserManager.getAll);
 /**
  * @openapi
  * /api/v1/user/me:

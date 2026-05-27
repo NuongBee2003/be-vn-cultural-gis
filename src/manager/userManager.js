@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const userController = require('../controller/UserController');
-const { BCRYPT_ROUNDS, toUserResponse } = require('../utils/authUtils');
+const { BCRYPT_ROUNDS, toUserResponse, isValidEmail } = require('../utils/authUtils');
 
 class UserManager {
     async getAll(req, res) {
@@ -38,6 +38,9 @@ class UserManager {
             }
 
             if (email !== undefined) {
+                if (!isValidEmail(email)) {
+                    return res.status(400).json({ message: 'Invalid email format' });
+                }
                 const userByEmail = await userController.getUserByEmail(email);
                 if (userByEmail && userByEmail.id !== existingUser.id) {
                     return res.status(409).json({ message: 'Email already in use' });

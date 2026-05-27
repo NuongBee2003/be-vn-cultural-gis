@@ -1,9 +1,14 @@
 const bcrypt = require('bcryptjs');
 const userController = require('../controller/UserController');
-const { BCRYPT_ROUNDS, toUserResponse, signAuthToken } = require('../utils/authUtils');
+const {
+    BCRYPT_ROUNDS,
+    toUserResponse,
+    signAuthToken,
+    isValidEmail,
+} = require('../utils/authUtils');
 
 if (!process.env.JWT_SECRET) {
-    throw new Error('JWT_SECRET not set in environment variables');
+    throw new Error('JWT_SECRET not set. Please configure it in your environment variables.');
 }
 
 const secret = process.env.JWT_SECRET;
@@ -16,7 +21,11 @@ class AuthManager {
             if (!username || !email || !password) {
                 return res
                     .status(400)
-                    .json({ message: 'username, email and password are required' });
+                    .json({ message: 'Username, email, and password are required' });
+            }
+
+            if (!isValidEmail(email)) {
+                return res.status(400).json({ message: 'Invalid email format' });
             }
 
             const existingUser = await userController.getUserByEmail(email);
@@ -50,7 +59,11 @@ class AuthManager {
         try {
             const { email, password } = req.body || {};
             if (!email || !password) {
-                return res.status(400).json({ message: 'email and password are required' });
+                return res.status(400).json({ message: 'Email and password are required' });
+            }
+
+            if (!isValidEmail(email)) {
+                return res.status(400).json({ message: 'Invalid email format' });
             }
 
             const user = await userController.getUserByEmail(email);
