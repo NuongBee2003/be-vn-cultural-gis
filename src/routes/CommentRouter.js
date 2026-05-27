@@ -19,6 +19,8 @@ const commentLimiter = rateLimit({
         }),
 });
 
+route.use(requireAuth, commentLimiter);
+
 /**
  * @openapi
  * /api/v1/comment:
@@ -58,7 +60,7 @@ const commentLimiter = rateLimit({
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-route.post('/', requireAuth, commentLimiter, CommentManager.create);
+route.post('/', CommentManager.create);
 
 /**
  * @openapi
@@ -107,7 +109,7 @@ route.post('/', requireAuth, commentLimiter, CommentManager.create);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-route.post('/:id/reply', requireAuth, commentLimiter, CommentManager.reply);
+route.post('/:id/reply', CommentManager.reply);
 
 /**
  * @openapi
@@ -160,6 +162,6 @@ route.post('/:id/reply', requireAuth, commentLimiter, CommentManager.reply);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-route.delete('/:id', requireAuth, commentLimiter, CommentManager.delete);
+route.delete('/:id', CommentManager.delete);
 
 module.exports = route;
