@@ -1,7 +1,13 @@
 const express = require('express');
 const route = express.Router();
 const UserManager = require('../manager/userManager');
-const { requireAuth, requireRole } = require("../middleware");
+const { requireAuth, requireRole, createRateLimiter } = require("../middleware");
+
+const userUpdateLimiter = createRateLimiter({
+    windowMs: 60 * 1000,
+    max: 20,
+    message: 'Too many update requests, please try again later',
+});
 
 route.get('/', requireAuth,requireRole('user'), UserManager.getAll);
 /**
@@ -33,5 +39,5 @@ route.get('/', requireAuth,requireRole('user'), UserManager.getAll);
  *       404:
  *         description: User not found
  */
-route.put('/me', requireAuth, UserManager.updateMe);
+route.put('/me', requireAuth, userUpdateLimiter, UserManager.updateMe);
 module.exports = route;

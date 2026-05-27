@@ -2,6 +2,13 @@ const express = require('express');
 const route = express.Router();
 
 const AuthManager = require('../manager/authManager');
+const { createRateLimiter } = require('../middleware');
+
+const authLimiter = createRateLimiter({
+    windowMs: 60 * 1000,
+    max: 10,
+    message: 'Too many authentication requests, please try again later',
+});
 
 /**
  * @openapi
@@ -28,7 +35,7 @@ const AuthManager = require('../manager/authManager');
  *       409:
  *         description: Email already in use
  */
-route.post('/register', AuthManager.register);
+route.post('/register', authLimiter, AuthManager.register);
 
 /**
  * @openapi
@@ -55,6 +62,6 @@ route.post('/register', AuthManager.register);
  *       401:
  *         description: Invalid email or password
  */
-route.post('/login', AuthManager.login);
+route.post('/login', authLimiter, AuthManager.login);
 
 module.exports = route;

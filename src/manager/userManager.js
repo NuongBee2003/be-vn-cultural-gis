@@ -1,14 +1,6 @@
 const bcrypt = require('bcryptjs');
 const userController = require('../controller/UserController');
-
-const toUserResponse = (user) => ({
-    id: user.id,
-    username: user.username,
-    email: user.email,
-    role: user.role,
-    avatar: user.avatar,
-    created_at: user.created_at,
-});
+const { BCRYPT_ROUNDS, toUserResponse } = require('../utils/authUtils');
 
 class UserManager {
     async getAll(req, res) {
@@ -57,14 +49,14 @@ class UserManager {
             if (avatar !== undefined) updates.avatar = avatar;
             if (email !== undefined) updates.email = email;
             if (password !== undefined) {
-                updates.password_hash = await bcrypt.hash(password, 10);
+                updates.password_hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
             }
 
             const updatedUser = await userController.updateUser(userId, updates);
             return res.status(200).json(toUserResponse(updatedUser));
         } catch (error) {
             // eslint-disable-next-line no-console
-            console.log('ERROR: ' + error);
+            console.error('ERROR:', error);
             const statusCode = error?.statusCode;
             if (typeof statusCode === 'number' && statusCode >= 400 && statusCode < 500) {
                 return res.status(statusCode).json({ message: error.message });
