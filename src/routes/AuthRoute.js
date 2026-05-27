@@ -1,13 +1,15 @@
 const express = require('express');
 const route = express.Router();
+const rateLimit = require('express-rate-limit');
 
 const AuthManager = require('../manager/authManager');
-const { createRateLimiter } = require('../middleware');
 
-const authLimiter = createRateLimiter({
-    windowMs: 60 * 1000,
-    max: 10,
-    message: 'Too many authentication requests, please try again later',
+const authLimiter = rateLimit({
+    windowMs: Number.parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10),
+    max: Number.parseInt(process.env.RATE_LIMIT_AUTH_MAX || '10', 10),
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: 'Too many authentication requests, please try again later' },
 });
 
 /**

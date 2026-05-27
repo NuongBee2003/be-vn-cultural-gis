@@ -1,12 +1,15 @@
 const express = require('express');
 const route = express.Router();
+const rateLimit = require('express-rate-limit');
 const UserManager = require('../manager/userManager');
-const { requireAuth, requireRole, createRateLimiter } = require("../middleware");
+const { requireAuth, requireRole } = require("../middleware");
 
-const userUpdateLimiter = createRateLimiter({
-    windowMs: 60 * 1000,
-    max: 20,
-    message: 'Too many update requests, please try again later',
+const userUpdateLimiter = rateLimit({
+    windowMs: Number.parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10),
+    max: Number.parseInt(process.env.RATE_LIMIT_UPDATE_MAX || '20', 10),
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: 'Too many update requests, please try again later' },
 });
 
 route.get('/', requireAuth,requireRole('user'), UserManager.getAll);
