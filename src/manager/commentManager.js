@@ -42,7 +42,7 @@ class CommentManager {
             user_id: userId,
             content: req.body?.content,
             parent_id: parentComment.id,
-        });
+        }, { parentComment });
 
         return sendSuccess(res, {
             statusCode: 201,

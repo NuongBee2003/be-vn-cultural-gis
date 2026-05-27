@@ -36,7 +36,7 @@ class CommentController {
     }
 
     async createComment(payload, options = {}) {
-        const { transaction } = options;
+        const { transaction, parentComment } = options;
         const { post_id, user_id, content, parent_id } = payload;
 
         const parsedPostId = this.parsePositiveInt(post_id, 'post_id');
@@ -58,11 +58,14 @@ class CommentController {
         let parentId = null;
         if (parent_id !== undefined && parent_id !== null) {
             parentId = this.parsePositiveInt(parent_id, 'parent_id');
-            const parentComment = await this.getCommentById(parentId);
-            if (!parentComment) {
+            const resolvedParent =
+                parentComment && Number(parentComment.id) === parentId
+                    ? parentComment
+                    : await this.getCommentById(parentId);
+            if (!resolvedParent) {
                 throw new HttpError(404, 'Parent comment not found');
             }
-            if (parentComment.post_id !== parsedPostId) {
+            if (resolvedParent.post_id !== parsedPostId) {
                 throw new HttpError(400, 'parent_id không thuộc post_id này');
             }
         }

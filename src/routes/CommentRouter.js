@@ -1,7 +1,23 @@
 const express = require('express');
 const route = express.Router();
+const rateLimit = require('express-rate-limit');
 const CommentManager = require('../manager/commentManager');
 const { requireAuth } = require('../middleware');
+const { sendError } = require('../utils/apiResponse');
+
+const commentLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => String(req.userId || req.ip),
+    handler: (req, res) =>
+        sendError(res, {
+            statusCode: 429,
+            message: 'Too many requests',
+            code: 'RATE_LIMITED',
+        }),
+});
 
 /**
  * @openapi
@@ -42,7 +58,7 @@ const { requireAuth } = require('../middleware');
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-route.post('/', requireAuth, CommentManager.create);
+route.post('/', requireAuth, commentLimiter, CommentManager.create);
 
 /**
  * @openapi
@@ -91,7 +107,7 @@ route.post('/', requireAuth, CommentManager.create);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-route.post('/:id/reply', requireAuth, CommentManager.reply);
+route.post('/:id/reply', requireAuth, commentLimiter, CommentManager.reply);
 
 /**
  * @openapi
@@ -144,6 +160,6 @@ route.post('/:id/reply', requireAuth, CommentManager.reply);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-route.delete('/:id', requireAuth, CommentManager.delete);
+route.delete('/:id', requireAuth, commentLimiter, CommentManager.delete);
 
 module.exports = route;
