@@ -7,7 +7,7 @@ const { sendError } = require('../utils/apiResponse');
 
 const commentLimiter = rateLimit({
     windowMs: 60 * 1000,
-    max: 30,
+    max: 60,
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: (req) => String(req.userId || req.ip),
@@ -19,7 +19,8 @@ const commentLimiter = rateLimit({
         }),
 });
 
-route.use(requireAuth, commentLimiter);
+route.use(commentLimiter);
+route.use(requireAuth);
 
 /**
  * @openapi
