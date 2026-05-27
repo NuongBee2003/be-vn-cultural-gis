@@ -8,7 +8,9 @@ const {
 } = require('../utils/authUtils');
 
 if (!process.env.JWT_SECRET) {
-    throw new Error('JWT_SECRET not set. Please configure it in your environment variables.');
+    throw new Error(
+        'JWT_SECRET environment variable is required. See .env.example for configuration details.'
+    );
 }
 
 const secret = process.env.JWT_SECRET;

@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken');
 
+const validator = require('validator');
+
 const parsedBcryptRounds = Number.parseInt(process.env.BCRYPT_ROUNDS || '10', 10);
 const MIN_BCRYPT_ROUNDS = 10;
 const BCRYPT_ROUNDS =
@@ -7,8 +9,7 @@ const BCRYPT_ROUNDS =
         ? parsedBcryptRounds
         : MIN_BCRYPT_ROUNDS;
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const isValidEmail = (email) => typeof email === 'string' && EMAIL_REGEX.test(email);
+const isValidEmail = (email) => typeof email === 'string' && validator.isEmail(email);
 
 const toUserResponse = (user) => ({
     id: user.id,

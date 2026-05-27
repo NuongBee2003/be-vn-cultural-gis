@@ -21,7 +21,7 @@ class UserManager {
                 return res.status(401).json({ message: 'Authentication required' });
             }
 
-            const { username, avatar, email, password } = req.body || {};
+            const { username, avatar, email, password, currentPassword } = req.body || {};
 
             if (
                 username === undefined &&
@@ -52,6 +52,18 @@ class UserManager {
             if (avatar !== undefined) updates.avatar = avatar;
             if (email !== undefined) updates.email = email;
             if (password !== undefined) {
+                if (!currentPassword) {
+                    return res
+                        .status(400)
+                        .json({ message: 'currentPassword is required to change password' });
+                }
+                const passwordMatches = await bcrypt.compare(
+                    currentPassword,
+                    existingUser.password_hash
+                );
+                if (!passwordMatches) {
+                    return res.status(401).json({ message: 'Current password is incorrect' });
+                }
                 updates.password_hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
             }
 

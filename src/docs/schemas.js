@@ -189,6 +189,7 @@ module.exports = {
 		properties: {
 			username: { type: 'string', example: 'nguyenvana' },
 			email: { type: 'string', example: 'user@example.com' },
+			currentPassword: { type: 'string', example: 'oldpassword123' },
 			password: { type: 'string', example: 'newpassword123' },
 			avatar: { type: 'string', nullable: true, example: 'https://example.com/avatar.png' },
 		},
