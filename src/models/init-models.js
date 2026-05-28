@@ -13,6 +13,7 @@ var _ReviewLike = require("./reviewLike");
 var _Review = require("./review");
 var _User = require("./user");
 var _Wishlist = require("./wishlist");
+var _Notification = require("./notification");
 
 function initModels(sequelize) {
   var PrismaMigration = _PrismaMigration(sequelize, DataTypes);
@@ -29,6 +30,7 @@ function initModels(sequelize) {
   var Review = _Review(sequelize, DataTypes);
   var User = _User(sequelize, DataTypes);
   var Wishlist = _Wishlist(sequelize, DataTypes);
+  var Notification = _Notification(sequelize, DataTypes);
 
   Post.belongsToMany(User, { as: 'user_id_users', through: PostLike, foreignKey: "post_id", otherKey: "user_id" });
   Review.belongsToMany(User, { as: 'user_id_users_review_likes', through: ReviewLike, foreignKey: "review_id", otherKey: "user_id" });
@@ -74,6 +76,8 @@ function initModels(sequelize) {
   User.hasMany(Review, { as: "reviews", foreignKey: "user_id"});
   Wishlist.belongsTo(User, { as: "user", foreignKey: "user_id"});
   User.hasMany(Wishlist, { as: "wishlists", foreignKey: "user_id"});
+  Notification.belongsTo(User, { as: "user", foreignKey: "user_id"});
+  User.hasMany(Notification, { as: "notifications", foreignKey: "user_id"});
 
   return {
     PrismaMigration,
@@ -90,6 +94,7 @@ function initModels(sequelize) {
     Review,
     User,
     Wishlist,
+    Notification,
   };
 }
 module.exports = initModels;

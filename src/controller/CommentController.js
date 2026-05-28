@@ -70,7 +70,7 @@ class CommentController {
             }
         }
 
-        return Comment.create(
+        const created = await Comment.create(
             {
                 post_id: parsedPostId,
                 user_id: parsedUserId,
@@ -79,6 +79,63 @@ class CommentController {
             },
             transaction ? { transaction } : undefined
         );
+
+        try {
+            const postUrl = `/post/${parsedPostId}`;
+
+            if (post.user_id && Number(post.user_id) !== Number(parsedUserId)) {
+                await db.Notification.create({
+                    user_id: post.user_id,
+                    actor_id: parsedUserId,
+                    post_id: parsedPostId,
+                    comment_id: created.id,
+                    url: postUrl,
+                    message: 'Đã nhắc đến bạn trong bình luận',
+                }, transaction ? { transaction } : undefined);
+            }
+
+            if (parentId) {
+                const parent = parentComment || (await this.getCommentById(parentId));
+                if (parent && Number(parent.user_id) !== Number(parsedUserId)) {
+                    await db.Notification.create({
+                        user_id: parent.user_id,
+                        actor_id: parsedUserId,
+                        post_id: parsedPostId,
+                        comment_id: created.id,
+                        url: postUrl,
+                        message: 'Có người trả lời bình luận của bạn',
+                    }, transaction ? { transaction } : undefined);
+                }
+            }
+
+            // detect mentions like @username
+            const mentionRegex = /@([a-zA-Z0-9_.]{3,100})/g;
+            const mentions = new Set();
+            let m;
+            while ((m = mentionRegex.exec(normalizedContent)) !== null) {
+                mentions.add(m[1]);
+            }
+
+            if (mentions.size > 0) {
+                const usernames = Array.from(mentions);
+                const users = await db.User.findAll({ where: { username: usernames } });
+                for (const u of users) {
+                    if (Number(u.id) === Number(parsedUserId)) continue;
+                    await db.Notification.create({
+                        user_id: u.id,
+                        actor_id: parsedUserId,
+                        post_id: parsedPostId,
+                        comment_id: created.id,
+                        url: postUrl,
+                        message: 'Bạn được nhắc tên trong bình luận',
+                    }, transaction ? { transaction } : undefined);
+                }
+            }
+        } catch (notifErr) {
+            console.error('Notification error:', notifErr);
+        }
+
+        return created;
     }
 
     async deleteComment(comment, options = {}) {
