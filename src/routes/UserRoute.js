@@ -1,26 +1,9 @@
 const express = require('express');
 const route = express.Router();
-const rateLimit = require('express-rate-limit');
 const UserManager = require('../manager/userManager');
 const { requireAuth, requireRole } = require("../middleware");
 
-const userUpdateLimiter = rateLimit({
-    windowMs: Number.parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10),
-    max: Number.parseInt(process.env.RATE_LIMIT_UPDATE_MAX || '20', 10),
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: { message: 'Too many update requests, please try again later' },
-});
-
-const userListLimiter = rateLimit({
-    windowMs: Number.parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10),
-    max: Number.parseInt(process.env.RATE_LIMIT_USER_LIST_MAX || '60', 10),
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: { message: 'Too many requests, please try again later' },
-});
-
-route.get('/', userListLimiter, requireAuth, requireRole('user'), UserManager.getAll);
+route.get('/', requireAuth, requireRole('user'), UserManager.getAll);
 /**
  * @openapi
  * /api/v1/user/me:
@@ -50,5 +33,5 @@ route.get('/', userListLimiter, requireAuth, requireRole('user'), UserManager.ge
  *       404:
  *         description: User not found
  */
-route.put('/me', userUpdateLimiter, requireAuth, UserManager.updateMe);
+route.put('/me', requireAuth, UserManager.updateMe);
 module.exports = route;

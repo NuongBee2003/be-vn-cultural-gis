@@ -9,7 +9,8 @@ const BCRYPT_ROUNDS =
         ? parsedBcryptRounds
         : MIN_BCRYPT_ROUNDS;
 
-const isValidEmail = (email) => typeof email === 'string' && validator.isEmail(email);
+const isValidEmail = (email) => typeof email === 'string' 
+&& validator.isEmail(email);
 
 const toUserResponse = (user) => ({
     id: user.id,

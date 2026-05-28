@@ -1,16 +1,7 @@
 const express = require('express');
 const route = express.Router();
-const rateLimit = require('express-rate-limit');
 
 const AuthManager = require('../manager/authManager');
-
-const authLimiter = rateLimit({
-    windowMs: Number.parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10),
-    max: Number.parseInt(process.env.RATE_LIMIT_AUTH_MAX || '10', 10),
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: { message: 'Too many authentication requests, please try again later' },
-});
 
 /**
  * @openapi
@@ -37,7 +28,7 @@ const authLimiter = rateLimit({
  *       409:
  *         description: Email already in use
  */
-route.post('/register', authLimiter, AuthManager.register);
+route.post('/register', AuthManager.register);
 
 /**
  * @openapi
@@ -64,6 +55,6 @@ route.post('/register', authLimiter, AuthManager.register);
  *       401:
  *         description: Invalid email or password
  */
-route.post('/login', authLimiter, AuthManager.login);
+route.post('/login', AuthManager.login);
 
 module.exports = route;
