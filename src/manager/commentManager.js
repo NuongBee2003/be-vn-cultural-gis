@@ -25,32 +25,6 @@ class CommentManager {
         });
     });
 
-    reply = asyncHandler(async (req, res) => {
-        const userId = req.userId;
-        if (!userId) {
-            throw new HttpError(401, 'Authentication required');
-        }
-
-        const parentId = commentController.parsePositiveInt(req.params.id, 'id');
-        const parentComment = await commentController.getCommentById(parentId);
-        if (!parentComment) {
-            throw new HttpError(404, 'Comment not found');
-        }
-
-        const reply = await commentController.createComment({
-            post_id: parentComment.post_id,
-            user_id: userId,
-            content: req.body?.content,
-            parent_id: parentComment.id,
-        }, { parentComment });
-
-        return sendSuccess(res, {
-            statusCode: 201,
-            message: 'Created',
-            data: reply,
-        });
-    });
-
     delete = asyncHandler(async (req, res) => {
         const commentId = commentController.parsePositiveInt(req.params.id, 'id');
         const comment = await commentController.getCommentById(commentId);

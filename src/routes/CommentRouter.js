@@ -48,55 +48,6 @@ route.post('/', CommentManager.create);
 
 /**
  * @openapi
- * /api/v1/comment/{id}/reply:
- *   post:
- *     tags:
- *       - Comment
- *     summary: Trả lời một comment
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *           minimum: 1
- *         description: ID của comment cần trả lời
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/CommentReplyRequest'
- *     responses:
- *       '201':
- *         description: Created
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/CommentResponse'
- *       '400':
- *         description: Bad Request
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       '401':
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       '404':
- *         description: Not Found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-route.post('/:id/reply', CommentManager.reply);
-
-/**
- * @openapi
  * /api/v1/comment/{id}:
  *   delete:
  *     tags:

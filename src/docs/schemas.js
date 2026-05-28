@@ -104,15 +104,13 @@ module.exports = {
 		properties: {
 			post_id: { type: 'integer', minimum: 1, example: 10 },
 			content: { type: 'string', example: 'Bài viết rất hay!' },
-			parent_id: { type: 'integer', minimum: 1, nullable: true, example: 2 },
-		},
-	},
-
-	CommentReplyRequest: {
-		type: 'object',
-		required: ['content'],
-		properties: {
-			content: { type: 'string', example: 'Mình đồng ý với bạn.' },
+			parent_id: {
+				type: 'integer',
+				minimum: 1,
+				nullable: true,
+				example: 2,
+				description: 'Nếu có giá trị này thì comment hiện tại là reply của comment cha.',
+			},
 		},
 	},
 
