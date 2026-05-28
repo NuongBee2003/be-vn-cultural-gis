@@ -183,4 +183,55 @@ module.exports = {
 			},
 		},
 	},
+
+	UserProfile: {
+		type: 'object',
+		properties: {
+			id: { type: 'integer', example: 10 },
+			username: { type: 'string', example: 'nguyenvana' },
+			email: { type: 'string', example: 'user@example.com' },
+			role: { type: 'string', example: 'user' },
+			avatar: { type: 'string', nullable: true, example: 'https://example.com/avatar.png' },
+			created_at: { type: 'string', format: 'date-time', example: '2024-01-01T10:00:00.000Z' },
+		},
+	},
+
+	AuthRegisterRequest: {
+		type: 'object',
+		required: ['username', 'email', 'password'],
+		properties: {
+			username: { type: 'string', example: 'nguyenvana' },
+			email: { type: 'string', example: 'user@example.com' },
+			password: { type: 'string', example: 'password123' },
+			avatar: { type: 'string', nullable: true, example: 'https://example.com/avatar.png' },
+		},
+	},
+
+	AuthLoginRequest: {
+		type: 'object',
+		required: ['email', 'password'],
+		properties: {
+			email: { type: 'string', example: 'user@example.com' },
+			password: { type: 'string', example: 'password123' },
+		},
+	},
+
+	AuthResponse: {
+		type: 'object',
+		properties: {
+			token: { type: 'string', description: 'JWT token' },
+			user: { $ref: '#/components/schemas/UserProfile' },
+		},
+	},
+
+	UserUpdateRequest: {
+		type: 'object',
+		properties: {
+			username: { type: 'string', example: 'nguyenvana' },
+			email: { type: 'string', example: 'user@example.com' },
+			currentPassword: { type: 'string', example: 'oldpassword123' },
+			password: { type: 'string', example: 'newpassword123' },
+			avatar: { type: 'string', nullable: true, example: 'https://example.com/avatar.png' },
+		},
+	},
 };

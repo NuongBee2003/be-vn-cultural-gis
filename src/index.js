@@ -11,6 +11,23 @@ require("./config/connectionDB");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const corsOrigin = process.env.CORS_ORIGIN || '*';
+app.use((req, res, next) => {
+	const origin = req.headers.origin;
+	if (corsOrigin === '*') {
+		res.header('Access-Control-Allow-Origin', '*');
+	} else if (origin) {
+		const allowed = corsOrigin.split(',').map((s) => s.trim()).filter(Boolean);
+		if (allowed.includes(origin)) {
+			res.header('Access-Control-Allow-Origin', origin);
+		}
+	}
+	res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+	res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+	if (req.method === 'OPTIONS') return res.sendStatus(204);
+	next();
+});
+
 const swaggerSpec = swaggerJSDoc({
 	definition: {
 		openapi: '3.0.3',
@@ -28,6 +45,8 @@ const swaggerSpec = swaggerJSDoc({
 			},
 		],
 		tags: [
+			{ name: 'Auth', description: 'API đăng nhập/đăng ký' },
+			{ name: 'User', description: 'API liên quan đến người dùng' },
 			{ name: 'Location', description: 'API liên quan đến vị trí/marker' },
 			{ name: 'Place', description: 'API liên quan đến địa điểm (place)' },
 			{ name: 'Search', description: 'API tìm kiếm (Elasticsearch)' },
@@ -35,6 +54,13 @@ const swaggerSpec = swaggerJSDoc({
 		],
 		components: {
 			schemas,
+			securitySchemes: {
+				bearerAuth: {
+					type: 'http',
+					scheme: 'bearer',
+					bearerFormat: 'JWT',
+				},
+			},
 		},
 	},
 	apis: ['./src/routes/*.js'],

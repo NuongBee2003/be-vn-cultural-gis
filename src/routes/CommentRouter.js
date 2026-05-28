@@ -1,25 +1,8 @@
 const express = require('express');
 const route = express.Router();
-const rateLimit = require('express-rate-limit');
 const CommentManager = require('../manager/commentManager');
 const { requireAuth } = require('../middleware');
-const { sendError } = require('../utils/apiResponse');
 
-const commentLimiter = rateLimit({
-    windowMs: 60 * 1000,
-    max: 60,
-    standardHeaders: true,
-    legacyHeaders: false,
-    keyGenerator: (req) => String(req.userId || req.ip),
-    handler: (req, res) =>
-        sendError(res, {
-            statusCode: 429,
-            message: 'Too many requests',
-            code: 'RATE_LIMITED',
-        }),
-});
-
-route.use(commentLimiter);
 route.use(requireAuth);
 
 /**
