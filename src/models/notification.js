@@ -1,19 +1,11 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('Comment', {
+  return sequelize.define('Notification', {
     id: {
       autoIncrement: true,
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true
-    },
-    post_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'posts',
-        key: 'id'
-      }
     },
     user_id: {
       type: DataTypes.INTEGER,
@@ -23,7 +15,23 @@ module.exports = function(sequelize, DataTypes) {
         key: 'id'
       }
     },
-    parent_id: {
+    actor_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'users',
+        key: 'id'
+      }
+    },
+    post_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'posts',
+        key: 'id'
+      }
+    },
+    comment_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
@@ -31,9 +39,18 @@ module.exports = function(sequelize, DataTypes) {
         key: 'id'
       }
     },
-    content: {
-      type: DataTypes.TEXT,
-      allowNull: false
+    url: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    message: {
+      type: DataTypes.STRING(500),
+      allowNull: true
+    },
+    is_read: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
     },
     created_at: {
       type: DataTypes.DATE(3),
@@ -42,37 +59,18 @@ module.exports = function(sequelize, DataTypes) {
     }
   }, {
     sequelize,
-    tableName: 'comments',
+    tableName: 'notifications',
     timestamps: false,
     indexes: [
       {
-        name: "PRIMARY",
-        unique: true,
-        using: "BTREE",
-        fields: [
-          { name: "id" },
-        ]
+        name: 'notifications_user_id_idx',
+        using: 'BTREE',
+        fields: [ { name: 'user_id' } ]
       },
       {
-        name: "comments_post_id_fkey",
-        using: "BTREE",
-        fields: [
-          { name: "post_id" },
-        ]
-      },
-      {
-        name: "comments_user_id_fkey",
-        using: "BTREE",
-        fields: [
-          { name: "user_id" },
-        ]
-      },
-      {
-        name: "comments_parent_id_fkey",
-        using: "BTREE",
-        fields: [
-          { name: "parent_id" },
-        ]
+        name: 'notifications_actor_id_idx',
+        using: 'BTREE',
+        fields: [ { name: 'actor_id' } ]
       },
     ]
   });
