@@ -208,6 +208,86 @@ module.exports = {
 		},
 	},
 
+	PostCreateRequest: {
+		type: 'object',
+		required: ['title', 'content'],
+		properties: {
+			title: { type: 'string', example: 'Một bài viết mới' },
+			content: { type: 'string', example: 'Nội dung bài viết' },
+			location_id: { type: 'integer', minimum: 1, nullable: true, example: 10 },
+			status: { type: 'string', example: 'accepted', nullable: true },
+		},
+	},
+
+	PostUpdateRequest: {
+		type: 'object',
+		properties: {
+			title: { type: 'string', example: 'Tiêu đề đã chỉnh sửa' },
+			content: { type: 'string', example: 'Nội dung đã chỉnh sửa' },
+			location_id: { type: 'integer', minimum: 1, nullable: true, example: 10 },
+			status: { type: 'string', example: 'accepted', nullable: true },
+		},
+	},
+
+	PostData: {
+		type: 'object',
+		properties: {
+			id: { type: 'integer', example: 1 },
+			user_id: { type: 'integer', example: 5 },
+			location_id: { type: 'integer', nullable: true, example: 10 },
+			title: { type: 'string', example: 'Một bài viết mới' },
+			content: { type: 'string', example: 'Nội dung bài viết' },
+			status: { type: 'string', example: 'accepted' },
+			created_at: { type: 'string', format: 'date-time', example: '2026-05-28T10:00:00.000Z' },
+			editYN: { type: 'string', enum: ['Y', 'N'], example: 'Y' },
+			delYN: { type: 'string', enum: ['Y', 'N'], example: 'Y' },
+			user: { $ref: '#/components/schemas/UserProfile', nullable: true },
+			location: {
+				type: 'object',
+				nullable: true,
+				properties: {
+					id: { type: 'integer', example: 10 },
+					lat: { type: 'number', nullable: true, example: 10.77584 },
+					lng: { type: 'number', nullable: true, example: 106.70098 },
+					address: { type: 'string', nullable: true, example: 'Phường Bến Thành, Quận 1, TP.HCM' },
+					place_id: { type: 'integer', nullable: true, example: 12 },
+					place: { $ref: '#/components/schemas/PlaceBrief', nullable: true },
+					district: {
+						type: 'object',
+						nullable: true,
+						properties: {
+							id: { type: 'integer', example: 1 },
+							name: { type: 'string', example: 'Quận 1' },
+						},
+					},
+				},
+			},
+		},
+	},
+
+	PostListResponse: {
+		type: 'object',
+		required: ['success', 'message', 'data'],
+		properties: {
+			success: { type: 'boolean', example: true },
+			message: { type: 'string', example: 'OK' },
+			data: {
+				type: 'array',
+				items: { $ref: '#/components/schemas/PostData' },
+			},
+		},
+	},
+
+	PostResponse: {
+		type: 'object',
+		required: ['success', 'message', 'data'],
+		properties: {
+			success: { type: 'boolean', example: true },
+			message: { type: 'string', example: 'OK' },
+			data: { $ref: '#/components/schemas/PostData' },
+		},
+	},
+
 	ErrorResponse: {
 		type: 'object',
 		required: ['success', 'message', 'error'],

@@ -47,6 +47,7 @@ const swaggerSpec = swaggerJSDoc({
 		tags: [
 			{ name: 'Auth', description: 'API đăng nhập/đăng ký' },
 			{ name: 'User', description: 'API liên quan đến người dùng' },
+			{ name: 'Post', description: 'API liên quan đến bài post' },
 			{ name: 'Location', description: 'API liên quan đến vị trí/marker' },
 			{ name: 'Place', description: 'API liên quan đến địa điểm (place)' },
 			{ name: 'Search', description: 'API tìm kiếm (Elasticsearch)' },
