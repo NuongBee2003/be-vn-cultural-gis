@@ -12,6 +12,8 @@ route.use(requireAuth);
  *     tags:
  *       - Comment
  *     summary: Tạo comment mới cho bài viết
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -49,10 +51,53 @@ route.post('/', CommentManager.create);
 /**
  * @openapi
  * /api/v1/comment/{id}:
+ *   put:
+ *     tags:
+ *       - Comment
+ *     summary: Chỉnh sửa comment
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: ID của comment cần sửa
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CommentUpdateRequest'
+ *     responses:
+ *       '200':
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CommentResponse'
+ *       '400':
+ *         description: Bad Request
+ *       '401':
+ *         description: Unauthorized
+ *       '403':
+ *         description: Forbidden
+ *       '404':
+ *         description: Not Found
+ */
+route.put('/:id', CommentManager.update);
+
+/**
+ * @openapi
+ * /api/v1/comment/{id}:
  *   delete:
  *     tags:
  *       - Comment
  *     summary: Xóa comment
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id

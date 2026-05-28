@@ -2,6 +2,7 @@ const express = require('express');
 const route = express.Router();
 
 const PlaceManager = require('../manager/placeManager');
+const { requireAuth } = require('../middleware');
 
 route.get('/', PlaceManager.getAllPlaces);
 /**
@@ -33,6 +34,47 @@ route.get('/', PlaceManager.getAllPlaces);
  *         description: Place not found
  */
 route.get('/:id', PlaceManager.getDetail);
+/**
+ * @openapi
+ * /api/v1/place/{id}/review:
+ *   post:
+ *     tags:
+ *       - Place
+ *     summary: Tạo review cho một địa điểm
+ *     description: |
+ *       API nhận rating/comment cho 1 place. Hệ thống sẽ tự gắn review vào location đầu tiên
+ *       của place đó để lưu xuống bảng reviews.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: Place ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/PlaceReviewCreateRequest'
+ *     responses:
+ *       '201':
+ *         description: Created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PlaceReviewResponse'
+ *       '400':
+ *         description: Bad Request
+ *       '401':
+ *         description: Unauthorized
+ *       '404':
+ *         description: Place not found
+ */
+route.post('/:id/review', requireAuth, PlaceManager.createReview);
 /**
  * @openapi
  * /api/v1/place:

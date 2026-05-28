@@ -311,6 +311,75 @@ class PlaceController {
         return place;
     }
 
+    async createReviewForPlace(placeIdInput, payload, userIdInput) {
+        const placeId = this.parsePositiveInt(placeIdInput, 'id');
+        const userId = this.parsePositiveInt(userIdInput, 'user_id');
+
+        const place = await db.Place.findByPk(placeId, {
+            attributes: ['id', 'name'],
+        });
+
+        if (!place) {
+            const err = new Error('Place not found');
+            err.statusCode = 404;
+            throw err;
+        }
+
+        const rating = Number(payload?.rating);
+        if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+            const err = new Error('rating must be an integer between 1 and 5');
+            err.statusCode = 400;
+            throw err;
+        }
+
+        const rawComment = payload?.comment;
+        const comment = rawComment === undefined || rawComment === null ? null : String(rawComment).trim() || null;
+
+        const location = await db.Location.findOne({
+            where: { place_id: placeId },
+            attributes: ['id', 'lat', 'lng', 'address', 'place_id'],
+            order: [['id', 'ASC']],
+        });
+
+        if (!location) {
+            const err = new Error('No location found for this place');
+            err.statusCode = 400;
+            throw err;
+        }
+
+        const review = await db.Review.create({
+            user_id: userId,
+            location_id: location.id,
+            rating,
+            comment,
+        });
+
+        return db.Review.findByPk(review.id, {
+            include: [
+                {
+                    model: db.User,
+                    as: 'user',
+                    attributes: ['id', 'username', 'avatar'],
+                    required: false,
+                },
+                {
+                    model: db.Location,
+                    as: 'location',
+                    attributes: ['id', 'lat', 'lng', 'address', 'place_id'],
+                    required: false,
+                    include: [
+                        {
+                            model: db.Place,
+                            as: 'place',
+                            attributes: ['id', 'name'],
+                            required: false,
+                        },
+                    ],
+                },
+            ],
+        });
+    }
+
     async deletePlace(id) {
         const placeId = this.parsePositiveInt(id, 'id');
 

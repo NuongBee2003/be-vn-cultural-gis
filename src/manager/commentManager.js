@@ -25,6 +25,28 @@ class CommentManager {
         });
     });
 
+    update = asyncHandler(async (req, res) => {
+        const commentId = commentController.parsePositiveInt(req.params.id, 'id');
+        const comment = await commentController.getCommentById(commentId);
+        if (!comment) {
+            throw new HttpError(404, 'Comment not found');
+        }
+
+        const user = req.user || {};
+        const isAdmin = String(user.role || '').toUpperCase() === 'ADMIN';
+        if (!isAdmin && Number(req.userId) !== Number(comment.user_id)) {
+            throw new HttpError(403, 'Forbidden');
+        }
+
+        const updatedComment = await commentController.updateComment(comment, req.body || {});
+
+        return sendSuccess(res, {
+            statusCode: 200,
+            message: 'Updated',
+            data: updatedComment,
+        });
+    });
+
     delete = asyncHandler(async (req, res) => {
         const commentId = commentController.parsePositiveInt(req.params.id, 'id');
         const comment = await commentController.getCommentById(commentId);

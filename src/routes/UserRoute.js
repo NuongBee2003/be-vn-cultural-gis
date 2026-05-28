@@ -3,6 +3,21 @@ const route = express.Router();
 const UserManager = require('../manager/userManager');
 const { requireAuth, requireRole } = require("../middleware");
 
+/**
+ * @openapi
+ * /api/v1/user:
+ *   get:
+ *     tags:
+ *       - User
+ *     summary: Lấy danh sách người dùng
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       '200':
+ *         description: OK
+ *       '401':
+ *         description: Unauthorized
+ */
 route.get('/', requireAuth, requireRole('user'), UserManager.getAll);
 /**
  * @openapi

@@ -1,6 +1,9 @@
 const placeController = require('../controller/PlaceController');
 const locationController = require('../controller/LocationController');
 const transactionController = require('../controller/TransactionController');
+const asyncHandler = require('../utils/asyncHandler');
+const HttpError = require('../utils/httpError');
+const { sendSuccess } = require('../utils/apiResponse');
 
 class PlaceManager {
     async getAllPlaces(req, res) {
@@ -117,6 +120,21 @@ class PlaceManager {
             return res.status(500).json({ message: 'Internal server error' });
         }
     }
+
+    createReview = asyncHandler(async (req, res) => {
+        const userId = req.userId;
+        if (!userId) {
+            throw new HttpError(401, 'Authentication required');
+        }
+
+        const review = await placeController.createReviewForPlace(req.params.id, req.body, userId);
+
+        return sendSuccess(res, {
+            statusCode: 201,
+            message: 'Created',
+            data: review,
+        });
+    });
 }
 
 module.exports = new PlaceManager();

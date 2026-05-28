@@ -35,6 +35,15 @@ class CommentController {
         return Comment.findByPk(id);
     }
 
+    async updateComment(comment, payload) {
+        const normalizedContent = this.normalizeContent(payload?.content);
+
+        comment.content = normalizedContent;
+        await comment.save();
+
+        return comment;
+    }
+
     async createComment(payload, options = {}) {
         const { transaction, parentComment } = options;
         const { post_id, user_id, content, parent_id } = payload;

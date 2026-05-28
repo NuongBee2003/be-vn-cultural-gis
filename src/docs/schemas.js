@@ -114,6 +114,18 @@ module.exports = {
 		},
 	},
 
+	CommentUpdateRequest: {
+		type: 'object',
+		required: ['content'],
+		properties: {
+			content: {
+				type: 'string',
+				example: 'Mình đã chỉnh lại nội dung comment.',
+				description: 'Nội dung mới của comment.',
+			},
+		},
+	},
+
 	CommentData: {
 		type: 'object',
 		properties: {
@@ -133,6 +145,66 @@ module.exports = {
 			success: { type: 'boolean', example: true },
 			message: { type: 'string', example: 'Created' },
 			data: { $ref: '#/components/schemas/CommentData' },
+		},
+	},
+
+	PlaceReviewCreateRequest: {
+		type: 'object',
+		required: ['rating'],
+		properties: {
+			rating: {
+				type: 'integer',
+				minimum: 1,
+				maximum: 5,
+				example: 5,
+				description: 'Số sao đánh giá từ 1 đến 5.',
+			},
+			comment: {
+				type: 'string',
+				nullable: true,
+				example: 'Địa điểm rất đáng ghé thăm.',
+			},
+		},
+	},
+
+	PlaceReviewData: {
+		type: 'object',
+		properties: {
+			id: { type: 'integer', example: 1 },
+			user_id: { type: 'integer', example: 5 },
+			location_id: { type: 'integer', example: 10 },
+			rating: { type: 'integer', example: 5 },
+			comment: { type: 'string', nullable: true, example: 'Địa điểm rất đáng ghé thăm.' },
+			created_at: { type: 'string', format: 'date-time', example: '2026-05-28T10:00:00.000Z' },
+			user: {
+				$ref: '#/components/schemas/UserProfile',
+				nullable: true,
+			},
+			location: {
+				type: 'object',
+				nullable: true,
+				properties: {
+					id: { type: 'integer', example: 10 },
+					lat: { type: 'number', nullable: true, example: 10.77584 },
+					lng: { type: 'number', nullable: true, example: 106.70098 },
+					address: { type: 'string', nullable: true, example: 'Phường Bến Thành, Quận 1, TP.HCM' },
+					place_id: { type: 'integer', example: 12 },
+					place: {
+						$ref: '#/components/schemas/PlaceBrief',
+						nullable: true,
+					},
+				},
+			},
+		},
+	},
+
+	PlaceReviewResponse: {
+		type: 'object',
+		required: ['success', 'message', 'data'],
+		properties: {
+			success: { type: 'boolean', example: true },
+			message: { type: 'string', example: 'Created' },
+			data: { $ref: '#/components/schemas/PlaceReviewData' },
 		},
 	},
 
