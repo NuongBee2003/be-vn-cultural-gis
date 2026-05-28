@@ -98,6 +98,46 @@ module.exports = {
 		},
 	},
 
+	CommentCreateRequest: {
+		type: 'object',
+		required: ['post_id', 'content'],
+		properties: {
+			post_id: { type: 'integer', minimum: 1, example: 10 },
+			content: { type: 'string', example: 'Bài viết rất hay!' },
+			parent_id: { type: 'integer', minimum: 1, nullable: true, example: 2 },
+		},
+	},
+
+	CommentReplyRequest: {
+		type: 'object',
+		required: ['content'],
+		properties: {
+			content: { type: 'string', example: 'Mình đồng ý với bạn.' },
+		},
+	},
+
+	CommentData: {
+		type: 'object',
+		properties: {
+			id: { type: 'integer', example: 1 },
+			post_id: { type: 'integer', example: 10 },
+			user_id: { type: 'integer', example: 5 },
+			parent_id: { type: 'integer', nullable: true, example: 2 },
+			content: { type: 'string', example: 'Bài viết rất hay!' },
+			created_at: { type: 'string', format: 'date-time', example: '2024-03-01T12:00:00.000Z' },
+		},
+	},
+
+	CommentResponse: {
+		type: 'object',
+		required: ['success', 'message', 'data'],
+		properties: {
+			success: { type: 'boolean', example: true },
+			message: { type: 'string', example: 'Created' },
+			data: { $ref: '#/components/schemas/CommentData' },
+		},
+	},
+
 	ErrorResponse: {
 		type: 'object',
 		required: ['success', 'message', 'error'],
