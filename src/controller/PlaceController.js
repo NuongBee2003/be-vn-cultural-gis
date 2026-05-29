@@ -142,7 +142,7 @@ class PlaceController {
                     model: db.Location,
                     as: 'locations',
                     attributes: ['id', 'lat', 'lng', 'address', 'district_id'],
-                    required: false,
+                    required: true,
                     include: [
                         {
                             model: db.District,

@@ -63,12 +63,8 @@ class PlaceManager {
 
                 await transactionController.commit(transaction);
 
-                if (locations !== undefined) {
-                    const placeWithLocations = await placeController.getPlaceWithLocations(createdPlace.id);
-                    return res.status(201).json(placeWithLocations);
-                }
-
-                return res.status(201).json(createdPlace);
+                const placeWithLocations = await placeController.getPlaceWithLocations(createdPlace.id);
+                return res.status(201).json(placeWithLocations);
             } catch (err) {
                 if (transaction) {
                     try {

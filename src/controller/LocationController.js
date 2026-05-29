@@ -57,7 +57,7 @@ class LocationController {
         if (lat !== undefined && lat !== null) {
             parsedLat = Number(lat);
             if (Number.isNaN(parsedLat) || parsedLat < -90 || parsedLat > 90) {
-                throw new HttpError(400, 'lat must be a number between -90 and 90');
+                throw new HttpError(400, 'lat phải là một số giữa -90 và 90');
             }
         }
 
@@ -65,7 +65,7 @@ class LocationController {
         if (lng !== undefined && lng !== null) {
             parsedLng = Number(lng);
             if (Number.isNaN(parsedLng) || parsedLng < -180 || parsedLng > 180) {
-                throw new HttpError(400, 'lng must be a number between -180 and 180');
+                throw new HttpError(400, 'lng phải là một số giữa -180 và 180');
             }
         }
 
