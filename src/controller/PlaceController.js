@@ -11,152 +11,31 @@ class PlaceController {
         return parsed;
     }
 
-    parseOptionalLatLng(value, fieldName, min, max) {
-        if (value === undefined || value === null || value === '') return null;
-        const parsed = Number(value);
-        if (Number.isNaN(parsed) || parsed < min || parsed > max) {
-            const err = new Error(`${fieldName} must be a number between ${min} and ${max}`);
-            err.statusCode = 400;
-            throw err;
-        }
-        return parsed;
-    }
-
     async getAllPlaces() {
         return db.Place.findAll();
     }
 
-    buildPlaceDetailResponse(placeInstance) {
-        if (!placeInstance) return null;
+    calculateRatingAvg(reviews = []) {
+        if (!Array.isArray(reviews) || reviews.length === 0) {
+            return null;
+        }
 
-        const place = placeInstance.toJSON ? placeInstance.toJSON() : placeInstance;
+        let total = 0;
+        let count = 0;
 
-        const toNumberOrNull = (value) => {
-            if (value === null || value === undefined || value === '') return null;
-            const n = Number(value);
-            return Number.isNaN(n) ? null : n;
-        };
-
-        const images = Array.isArray(place.assets)
-            ? place.assets
-                  .map((a) => ({
-                      id: a.id,
-                      url: a.url,
-                      is_primary: a.is_primary,
-                  }))
-                  .sort((a, b) => Number(Boolean(b.is_primary)) - Number(Boolean(a.is_primary)))
-            : [];
-
-        const locations = Array.isArray(place.locations)
-            ? place.locations.map((l) => {
-                  const locationReviews = Array.isArray(l.reviews) ? l.reviews : [];
-                  const locationReviewCount = locationReviews.length;
-                  const locationRatingAvg =
-                      locationReviewCount === 0
-                          ? null
-                          : Number(
-                                (
-                                    locationReviews.reduce(
-                                        (sum, review) => sum + Number(review.rating || 0),
-                                        0
-                                    ) / locationReviewCount
-                                ).toFixed(2)
-                            );
-
-                  return {
-                      id: l.id,
-                      lat: toNumberOrNull(l.lat),
-                      lng: toNumberOrNull(l.lng),
-                      address: l.address,
-                      review_count: locationReviewCount,
-                      rating_avg: locationRatingAvg,
-                      district: l.district
-                          ? {
-                                id: l.district.id,
-                                name: l.district.name,
-                            }
-                          : null,
-                  };
-              })
-            : [];
-
-        const reviews = [];
-        if (Array.isArray(place.locations)) {
-            for (const loc of place.locations) {
-                if (!Array.isArray(loc.reviews)) continue;
-
-                for (const r of loc.reviews) {
-                    const likedBy = Array.isArray(r.review_likes)
-                        ? r.review_likes
-                              .map((rl) => rl.user)
-                              .filter(Boolean)
-                              .map((u) => ({ id: u.id, username: u.username, avatar: u.avatar }))
-                        : [];
-
-                    const uniqueLikedBy = Array.from(
-                        new Map(likedBy.map((u) => [u.id, u])).values()
-                    );
-
-                    const reviewImages = Array.isArray(r.assets)
-                        ? r.assets.map((a) => ({ id: a.id, url: a.url }))
-                        : [];
-
-                    reviews.push({
-                        id: r.id,
-                        rating: r.rating,
-                        comment: r.comment,
-                        created_at: r.created_at,
-                        user: r.user
-                            ? {
-                                  id: r.user.id,
-                                  username: r.user.username,
-                                  avatar: r.user.avatar,
-                              }
-                            : null,
-                        like_count: uniqueLikedBy.length,
-                        liked_by: uniqueLikedBy,
-                        images: reviewImages,
-                        location: {
-                            id: loc.id,
-                            lat: toNumberOrNull(loc.lat),
-                            lng: toNumberOrNull(loc.lng),
-                            address: loc.address,
-                        },
-                    });
-                }
+        for (const review of reviews) {
+            const rating = Number(review?.rating);
+            if (!Number.isNaN(rating)) {
+                total += rating;
+                count += 1;
             }
         }
 
-        const reviewCount = reviews.length;
-        const ratingAvg =
-            reviewCount === 0
-                ? null
-                : Number(
-                      (
-                          reviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) /
-                          reviewCount
-                      ).toFixed(2)
-                  );
+        if (count === 0) {
+            return null;
+        }
 
-        return {
-            id: place.id,
-            name: place.name,
-            description: place.description,
-            category: place.category
-                ? {
-                      id: place.category.id,
-                      name: place.category.name,
-                      icon_marker: place.category.icon_marker,
-                  }
-                : null,
-            images,
-            locations,
-            review_count: reviewCount,
-            rating_avg: ratingAvg,
-            reviews: reviews.sort(
-                (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
-            ),
-        };
+        return Number((total / count).toFixed(2));
     }
 
     async getPlaceDetail(id) {
@@ -237,7 +116,16 @@ class PlaceController {
             throw err;
         }
 
-        return this.buildPlaceDetailResponse(place);
+        const reviews = [];
+        for (const location of place.locations || []) {
+            if (Array.isArray(location.reviews)) {
+                reviews.push(...location.reviews);
+            }
+        }
+
+        const rating_avg = this.calculateRatingAvg(reviews);
+
+        return { ...place.toJSON(), rating_avg };
     }
 
     async getPlaceWithLocations(id) {

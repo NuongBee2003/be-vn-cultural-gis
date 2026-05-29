@@ -53,14 +53,20 @@ class LocationController {
         const parsedPlaceId = this.parsePositiveInt(place_id, 'place_id');
         const parsedDistrictId = this.parsePositiveInt(district_id, 'district_id');
 
-        const parsedLat = lat !== undefined && lat !== null ? Number(lat) : null;
-        const parsedLng = lng !== undefined && lng !== null ? Number(lng) : null;
-
-        if (parsedLat !== null && (Number.isNaN(parsedLat) || parsedLat < -90 || parsedLat > 90)) {
-            throw new HttpError(400, 'lat must be a number between -90 and 90');
+        let parsedLat = null;
+        if (lat !== undefined && lat !== null) {
+            parsedLat = Number(lat);
+            if (Number.isNaN(parsedLat) || parsedLat < -90 || parsedLat > 90) {
+                throw new HttpError(400, 'lat must be a number between -90 and 90');
+            }
         }
-        if (parsedLng !== null && (Number.isNaN(parsedLng) || parsedLng < -180 || parsedLng > 180)) {
-            throw new HttpError(400, 'lng must be a number between -180 and 180');
+
+        let parsedLng = null;
+        if (lng !== undefined && lng !== null) {
+            parsedLng = Number(lng);
+            if (Number.isNaN(parsedLng) || parsedLng < -180 || parsedLng > 180) {
+                throw new HttpError(400, 'lng must be a number between -180 and 180');
+            }
         }
 
         const location = await Location.create({
