@@ -2,9 +2,8 @@ const express = require('express');
 const route = express.Router();
 
 const PostManager = require('../manager/postManager');
-const { requireAuth } = require('../middleware');
+const { requireAuth, optionalAuth } = require('../middleware');
 
-route.use(requireAuth);
 
 /**
  * @openapi
@@ -19,7 +18,7 @@ route.use(requireAuth);
  *       '200':
  *         description: OK
  */
-route.get('/', PostManager.getAll);
+route.get('/', optionalAuth, PostManager.getAll);
 
 /**
  * @openapi
@@ -43,7 +42,7 @@ route.get('/', PostManager.getAll);
  *       '404':
  *         description: Post not found
  */
-route.get('/:id', PostManager.getDetail);
+route.get('/:id', optionalAuth, PostManager.getDetail);
 
 /**
  * @openapi
@@ -68,7 +67,7 @@ route.get('/:id', PostManager.getDetail);
  *       '401':
  *         description: Unauthorized
  */
-route.post('/', PostManager.create);
+route.post('/', requireAuth, PostManager.create);
 
 /**
  * @openapi
@@ -102,7 +101,7 @@ route.post('/', PostManager.create);
  *       '404':
  *         description: Post not found
  */
-route.put('/:id', PostManager.update);
+route.put('/:id', requireAuth, PostManager.update);
 
 /**
  * @openapi
@@ -130,6 +129,6 @@ route.put('/:id', PostManager.update);
  *       '404':
  *         description: Post not found
  */
-route.delete('/:id', PostManager.delete);
+route.delete('/:id', requireAuth, PostManager.delete);
 
 module.exports = route;

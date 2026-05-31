@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('Place', {
+  return sequelize.define('SchemaMigration', {
     id: {
       autoIncrement: true,
       type: DataTypes.INTEGER,
@@ -9,32 +9,17 @@ module.exports = function(sequelize, DataTypes) {
     },
     name: {
       type: DataTypes.STRING(255),
-      allowNull: false
+      allowNull: false,
+      unique: "name"
     },
-    description: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    category_id: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: 'categories',
-        key: 'id'
-      }
-    },
-    created_at: {
+    applied_at: {
       type: DataTypes.DATE(3),
       allowNull: false,
       defaultValue: "CURRENT_TIMESTAMP(3)"
-    },
-    updated_at: {
-      type: DataTypes.DATE(3),
-      allowNull: true
     }
   }, {
     sequelize,
-    tableName: 'places',
+    tableName: 'schema_migrations',
     timestamps: false,
     indexes: [
       {
@@ -46,10 +31,11 @@ module.exports = function(sequelize, DataTypes) {
         ]
       },
       {
-        name: "places_category_id_fkey",
+        name: "name",
+        unique: true,
         using: "BTREE",
         fields: [
-          { name: "category_id" },
+          { name: "name" },
         ]
       },
     ]

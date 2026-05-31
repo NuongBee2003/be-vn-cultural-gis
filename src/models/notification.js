@@ -50,12 +50,12 @@ module.exports = function(sequelize, DataTypes) {
     is_read: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: false
+      defaultValue: 0
     },
     created_at: {
       type: DataTypes.DATE(3),
       allowNull: false,
-      defaultValue: Sequelize.literal('CURRENT_TIMESTAMP(3)')
+      defaultValue: "CURRENT_TIMESTAMP(3)"
     }
   }, {
     sequelize,
@@ -63,14 +63,40 @@ module.exports = function(sequelize, DataTypes) {
     timestamps: false,
     indexes: [
       {
-        name: 'notifications_user_id_idx',
-        using: 'BTREE',
-        fields: [ { name: 'user_id' } ]
+        name: "PRIMARY",
+        unique: true,
+        using: "BTREE",
+        fields: [
+          { name: "id" },
+        ]
       },
       {
-        name: 'notifications_actor_id_idx',
-        using: 'BTREE',
-        fields: [ { name: 'actor_id' } ]
+        name: "post_id",
+        using: "BTREE",
+        fields: [
+          { name: "post_id" },
+        ]
+      },
+      {
+        name: "comment_id",
+        using: "BTREE",
+        fields: [
+          { name: "comment_id" },
+        ]
+      },
+      {
+        name: "notifications_user_id_idx",
+        using: "BTREE",
+        fields: [
+          { name: "user_id" },
+        ]
+      },
+      {
+        name: "notifications_actor_id_idx",
+        using: "BTREE",
+        fields: [
+          { name: "actor_id" },
+        ]
       },
     ]
   });

@@ -12,7 +12,11 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false
     },
     icon_marker: {
-      type: DataTypes.STRING(191),
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    color: {
+      type: DataTypes.STRING(7),
       allowNull: true
     }
   }, {

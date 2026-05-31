@@ -6,14 +6,15 @@ var _CheckIn = require("./checkIn");
 var _Comment = require("./comment");
 var _District = require("./district");
 var _Location = require("./location");
+var _Notification = require("./notification");
 var _Place = require("./place");
 var _PostLike = require("./postLike");
 var _Post = require("./post");
 var _ReviewLike = require("./reviewLike");
 var _Review = require("./review");
+var _SchemaMigration = require("./schemaMigration");
 var _User = require("./user");
 var _Wishlist = require("./wishlist");
-var _Notification = require("./notification");
 
 function initModels(sequelize) {
   var PrismaMigration = _PrismaMigration(sequelize, DataTypes);
@@ -23,14 +24,15 @@ function initModels(sequelize) {
   var Comment = _Comment(sequelize, DataTypes);
   var District = _District(sequelize, DataTypes);
   var Location = _Location(sequelize, DataTypes);
+  var Notification = _Notification(sequelize, DataTypes);
   var Place = _Place(sequelize, DataTypes);
   var PostLike = _PostLike(sequelize, DataTypes);
   var Post = _Post(sequelize, DataTypes);
   var ReviewLike = _ReviewLike(sequelize, DataTypes);
   var Review = _Review(sequelize, DataTypes);
+  var SchemaMigration = _SchemaMigration(sequelize, DataTypes);
   var User = _User(sequelize, DataTypes);
   var Wishlist = _Wishlist(sequelize, DataTypes);
-  var Notification = _Notification(sequelize, DataTypes);
 
   Post.belongsToMany(User, { as: 'user_id_users', through: PostLike, foreignKey: "post_id", otherKey: "user_id" });
   Review.belongsToMany(User, { as: 'user_id_users_review_likes', through: ReviewLike, foreignKey: "review_id", otherKey: "user_id" });
@@ -38,6 +40,10 @@ function initModels(sequelize) {
   User.belongsToMany(Review, { as: 'review_id_reviews', through: ReviewLike, foreignKey: "user_id", otherKey: "review_id" });
   Place.belongsTo(Category, { as: "category", foreignKey: "category_id"});
   Category.hasMany(Place, { as: "places", foreignKey: "category_id"});
+  Comment.belongsTo(Comment, { as: "parent", foreignKey: "parent_id"});
+  Comment.hasMany(Comment, { as: "comments", foreignKey: "parent_id"});
+  Notification.belongsTo(Comment, { as: "comment", foreignKey: "comment_id"});
+  Comment.hasMany(Notification, { as: "notifications", foreignKey: "comment_id"});
   Location.belongsTo(District, { as: "district", foreignKey: "district_id"});
   District.hasMany(Location, { as: "locations", foreignKey: "district_id"});
   CheckIn.belongsTo(Location, { as: "location", foreignKey: "location_id"});
@@ -52,10 +58,10 @@ function initModels(sequelize) {
   Place.hasMany(Location, { as: "locations", foreignKey: "place_id"});
   Asset.belongsTo(Post, { as: "post", foreignKey: "post_id"});
   Post.hasMany(Asset, { as: "assets", foreignKey: "post_id"});
-  Comment.belongsTo(Comment, { as: "parent", foreignKey: "parent_id"});
-  Comment.hasMany(Comment, { as: "replies", foreignKey: "parent_id"});
   Comment.belongsTo(Post, { as: "post", foreignKey: "post_id"});
   Post.hasMany(Comment, { as: "comments", foreignKey: "post_id"});
+  Notification.belongsTo(Post, { as: "post", foreignKey: "post_id"});
+  Post.hasMany(Notification, { as: "notifications", foreignKey: "post_id"});
   PostLike.belongsTo(Post, { as: "post", foreignKey: "post_id"});
   Post.hasMany(PostLike, { as: "post_likes", foreignKey: "post_id"});
   Asset.belongsTo(Review, { as: "review", foreignKey: "review_id"});
@@ -66,6 +72,10 @@ function initModels(sequelize) {
   User.hasMany(CheckIn, { as: "check_ins", foreignKey: "user_id"});
   Comment.belongsTo(User, { as: "user", foreignKey: "user_id"});
   User.hasMany(Comment, { as: "comments", foreignKey: "user_id"});
+  Notification.belongsTo(User, { as: "user", foreignKey: "user_id"});
+  User.hasMany(Notification, { as: "notifications", foreignKey: "user_id"});
+  Notification.belongsTo(User, { as: "actor", foreignKey: "actor_id"});
+  User.hasMany(Notification, { as: "actor_notifications", foreignKey: "actor_id"});
   PostLike.belongsTo(User, { as: "user", foreignKey: "user_id"});
   User.hasMany(PostLike, { as: "post_likes", foreignKey: "user_id"});
   Post.belongsTo(User, { as: "user", foreignKey: "user_id"});
@@ -76,8 +86,6 @@ function initModels(sequelize) {
   User.hasMany(Review, { as: "reviews", foreignKey: "user_id"});
   Wishlist.belongsTo(User, { as: "user", foreignKey: "user_id"});
   User.hasMany(Wishlist, { as: "wishlists", foreignKey: "user_id"});
-  Notification.belongsTo(User, { as: "user", foreignKey: "user_id"});
-  User.hasMany(Notification, { as: "notifications", foreignKey: "user_id"});
 
   return {
     PrismaMigration,
@@ -87,14 +95,15 @@ function initModels(sequelize) {
     Comment,
     District,
     Location,
+    Notification,
     Place,
     PostLike,
     Post,
     ReviewLike,
     Review,
+    SchemaMigration,
     User,
     Wishlist,
-    Notification,
   };
 }
 module.exports = initModels;

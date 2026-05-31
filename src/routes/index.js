@@ -6,7 +6,10 @@ const LocationRoute = require('./LocationRouter');
 const CategoryRoute = require('./CategoryRouter');
 const SearchRoute = require('./SearchRouter');
 const CommentRoute = require('./CommentRouter');
+const AuthManager = require('../manager/authManager');
+
 const initRoutes = (app) =>{
+    app.post("/api/v1/login", AuthManager.login);
     app.use("/api/v1/auth", AuthRoute);
     app.use("/api/v1/user", UserRoute);
     app.use("/api/v1/post", PostRoute);

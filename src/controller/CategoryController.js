@@ -16,18 +16,18 @@ class CategoryController {
     }
 
     async createCategory(payload) {
-        const { name, icon_marker } = payload || {};
+        const { name, icon_marker, color } = payload || {};
         if (!name || typeof name !== 'string') {
             const err = new Error('name is required');
             err.statusCode = 400;
             throw err;
         }
-        return db.Category.create({ name, icon_marker });
+        return db.Category.create({ name, icon_marker, color });
     }
 
     async updateCategory(id, payload) {
         const categoryId = this.parsePositiveInt(id, 'id');
-        const { name, icon_marker } = payload || {};
+        const { name, icon_marker, color } = payload || {};
 
         const category = await db.Category.findByPk(categoryId);
         if (!category) {
@@ -38,6 +38,7 @@ class CategoryController {
 
         if (name !== undefined) category.name = name;
         if (icon_marker !== undefined) category.icon_marker = icon_marker;
+        if (color !== undefined) category.color = color;
         await category.save();
         return category;
     }
