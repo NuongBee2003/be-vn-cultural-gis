@@ -23,8 +23,10 @@ class LocationManager {
 
     getLocationsByGeo = asyncHandler(async (req, res) => {
         const input = req.body || {};
+        console.log("📥 Received request body:", input);
 
         const locations = await locationController.getLocationsByViewport(input);
+        console.log("📦 Locations fetched:", locations.length);
 
         return sendSuccess(res, {
             statusCode: 200,
@@ -80,6 +82,38 @@ class LocationManager {
             message: 'Deleted',
             data: null,
         });
+    });
+
+    getAllLocations = asyncHandler(async (req, res) => {
+        try {
+            console.log("🔵 getAllLocations manager called");
+            const page = Number(req.query.page) || 1;
+            const limit = Number(req.query.limit) || 20;
+            
+            console.log("📥 Query params - page:", page, "limit:", limit);
+            
+            const result = await locationController.getAllLocations(page, limit);
+            console.log("✅ Controller returned:", result);
+            
+            const totalPages = Math.ceil(result.count / result.limit);
+            
+            return sendSuccess(res, {
+                statusCode: 200,
+                message: 'OK',
+                data: result.rows,
+                meta: {
+                    total: result.count,
+                    count: result.rows.length,
+                    page: result.page,
+                    limit: result.limit,
+                    totalPages: totalPages,
+                },
+            });
+        } catch (err) {
+            console.error("🔴 getAllLocations manager error:", err.message);
+            console.error("🔴 Error:", err);
+            throw err;
+        }
     });
 }
 

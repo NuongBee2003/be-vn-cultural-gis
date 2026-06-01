@@ -15,7 +15,10 @@ class LocationController {
     }
 
     async getLocationsByViewport(query) {
+        console.log("🔍 getLocationsByViewport query:", query);
         const parsed = parseViewportQuery(query);
+        console.log("✅ Parsed viewport:", parsed);
+        
         const { bounds, limit } = parsed;
 
         const where = {
@@ -23,35 +26,43 @@ class LocationController {
             lng: { [Op.between]: [bounds.minLng, bounds.maxLng] },
         };
 
-        return Location.findAll({
-            attributes: ['id', 'lat', 'lng', 'address', 'place_id', 'district_id'],
-            where,
-            include: [
-                {
-                    model: db.Place,
-                    as: 'place',
-                    attributes: ['id', 'name'],
-                    required: true,
-                    include: [
-                        {
-                            model: db.Category,
-                            as: 'category',
-                            attributes: ['id', 'name', 'icon_marker'],
-                            required: false,
-                        },
-                    ],
-                },
-            ],
-            limit,
-        });
+        console.log("🔎 Querying with where:", where);
+
+        try {
+            const result = await Location.findAll({
+                attributes: ['id', 'lat', 'lng', 'address', 'place_id'],
+                where,
+                include: [
+                    {
+                        model: db.Place,
+                        as: 'place',
+                        attributes: ['id', 'name'],
+                        required: true,
+                        include: [
+                            {
+                                model: db.Category,
+                                as: 'category',
+                                attributes: ['id', 'name', 'icon_marker', 'color'],
+                                required: false,
+                            },
+                        ],
+                    },
+                ],
+                limit,
+            });
+            console.log("✅ Query success, found:", result.length, "locations");
+            return result;
+        } catch (err) {
+            console.error("❌ Query error:", err.message);
+            throw err;
+        }
     }
 
     async createLocation(payload, options = {}) {
         const { transaction } = options;
-        const { lat, lng, address, place_id, district_id } = payload;
+        const { lat, lng, address, place_id } = payload;
 
         const parsedPlaceId = this.parsePositiveInt(place_id, 'place_id');
-        const parsedDistrictId = this.parsePositiveInt(district_id, 'district_id');
 
         let parsedLat = null;
         if (lat !== undefined && lat !== null) {
@@ -74,7 +85,6 @@ class LocationController {
             lng: parsedLng,
             address,
             place_id: parsedPlaceId,
-            district_id: parsedDistrictId,
         }, transaction ? { transaction } : undefined);
 
         await db.Place.update(
@@ -101,7 +111,7 @@ class LocationController {
     async getLocationsByCategory(categoryId) {
 
         return Location.findAll({
-            attributes: ['id', 'lat', 'lng', 'address', 'place_id', 'district_id'],
+            attributes: ['id', 'lat', 'lng', 'address', 'place_id'],
             include: [
                 {
                     model: db.Place,
@@ -113,13 +123,69 @@ class LocationController {
                         {
                             model: db.Category,
                             as: 'category',
-                            attributes: ['id', 'name', 'icon_marker'],
+                            attributes: ['id', 'name', 'icon_marker', 'color'],
                             required: false,
                         },
                     ],
                 },
             ],
         });
+    }
+
+    async getAllLocations(page = 1, limit = 20) {
+        console.log("📄 getAllLocations: page=", page, ", limit=", limit);
+        
+        const parsedPage = this.parsePositiveInt(page, 'page');
+        const parsedLimit = this.parsePositiveInt(limit, 'limit');
+        const offset = (parsedPage - 1) * parsedLimit;
+        
+        console.log("✅ Parsed: page=", parsedPage, ", limit=", parsedLimit, ", offset=", offset);
+
+        try {
+            // First get total count
+            const countResult = await Location.findAll({
+                attributes: [
+                    [db.sequelize.fn('COUNT', db.sequelize.col('id')), 'total']
+                ],
+                raw: true,
+            });
+            const count = countResult[0]?.total || 0;
+            console.log("📊 Total locations:", count);
+            
+            // Now get paginated results with same pattern as getLocationsByViewport
+            const result = await Location.findAll({
+                attributes: ['id', 'lat', 'lng', 'address', 'place_id'],
+                include: [
+                    {
+                        model: db.Place,
+                        as: 'place',
+                        attributes: ['id', 'name'],
+                        required: true,
+                        include: [
+                            {
+                                model: db.Category,
+                                as: 'category',
+                                attributes: ['id', 'name', 'icon_marker', 'color'],
+                                required: false,
+                            },
+                        ],
+                    },
+                ],
+                limit: parsedLimit,
+                offset: offset,
+            });
+            
+            console.log("✅ Query success, found:", result.length, "locations for page", parsedPage);
+            return { 
+                rows: result, 
+                count, 
+                page: parsedPage, 
+                limit: parsedLimit 
+            };
+        } catch (err) {
+            console.error("❌ Query error:", err.message);
+            throw err;
+        }
     }
 }
 
