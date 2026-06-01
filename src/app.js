@@ -80,7 +80,7 @@ app.get('/api-docs.json', (req, res) => {
 		...swaggerSpec,
 		servers: [
 			{ url: baseUrl, description: 'Current host' },
-			{ url: `http://localhost:${process.env.PORT || 5000}`, description: 'Local dev' },
+			{ url: `https://be-vn-cultural-gis.vercel.app/`, description: 'Production dev' },
 		],
 	});
 });
