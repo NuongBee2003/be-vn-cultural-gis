@@ -7,18 +7,17 @@ const {
     isValidEmail,
 } = require('../utils/authUtils');
 
-if (!process.env.JWT_SECRET) {
-    throw new Error(
-        'JWT_SECRET environment variable is required. See .env.example for configuration details.'
-    );
-}
-
-const secret = process.env.JWT_SECRET;
-const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
+const getSecret = () => process.env.JWT_SECRET;
+const getExpiresIn = () => process.env.JWT_EXPIRES_IN || '7d';
 
 class AuthManager {
     async register(req, res) {
         try {
+            const secret = getSecret();
+            if (!secret) {
+                return res.status(500).json({ message: 'Server misconfigured: JWT_SECRET is missing' });
+            }
+
             const { username, email, password, avatar } = req.body || {};
             if (!username || !email || !password) {
                 return res
@@ -43,7 +42,7 @@ class AuthManager {
                 avatar,
             });
 
-            const token = signAuthToken(createdUser, secret, expiresIn);
+            const token = signAuthToken(createdUser, secret, getExpiresIn());
 
             return res.status(201).json({ token, user: toUserResponse(createdUser) });
         } catch (error) {
@@ -59,6 +58,11 @@ class AuthManager {
 
     async login(req, res) {
         try {
+            const secret = getSecret();
+            if (!secret) {
+                return res.status(500).json({ message: 'Server misconfigured: JWT_SECRET is missing' });
+            }
+
             const { email, password } = req.body || {};
             if (!email || !password) {
                 return res.status(400).json({ message: 'Email and password are required' });
@@ -78,7 +82,7 @@ class AuthManager {
                 return res.status(401).json({ message: 'Invalid email or password' });
             }
 
-            const token = signAuthToken(user, secret, expiresIn);
+            const token = signAuthToken(user, secret, getExpiresIn());
 
             return res.status(200).json({ token, user: toUserResponse(user) });
         } catch (error) {

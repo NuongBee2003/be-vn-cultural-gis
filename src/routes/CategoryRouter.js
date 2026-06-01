@@ -1,7 +1,7 @@
 const express = require('express');
 const route = express.Router();
 const CategoryManager = require('../manager/categoryManager');
-const { requireAuth, requireRole, optionalAuth, requireAdmin } = require("../middleware");
+const { requireAuth, requireRole, optionalAuth } = require("../middleware");
 
 /**
  * @openapi
@@ -31,7 +31,7 @@ route.get('/', optionalAuth, CategoryManager.getAllCategories);
  *       '201':
  *         description: Created
  */
-route.post('/', requireAdmin, CategoryManager.create);
+route.post('/', requireAuth, requireRole('ADMIN'), CategoryManager.create);
 
 /**
  * @openapi
@@ -52,7 +52,7 @@ route.post('/', requireAdmin, CategoryManager.create);
  *       '200':
  *         description: OK
  */
-route.delete('/:id', requireAdmin, CategoryManager.delete);
+route.delete('/:id', requireAuth, requireRole('ADMIN'), CategoryManager.delete);
 
 /**
  * @openapi
@@ -73,6 +73,7 @@ route.delete('/:id', requireAdmin, CategoryManager.delete);
  *       '200':
  *         description: OK
  */
-route.put('/:id', requireAdmin, CategoryManager.update);
+route.put('/:id', requireAuth, requireRole('ADMIN'), CategoryManager.update);
+
 
 module.exports = route;

@@ -27,5 +27,8 @@ const testConnetion = async () => {
     console.error("Unable to connect to the database:", error);
   }
 };
-testConnetion()
+
+if (process.env.NODE_ENV !== 'production') {
+  testConnetion();
+}
 module.exports = sequelize;
