@@ -43,13 +43,6 @@ const swaggerSpec = swaggerJSDoc({
 			description:
 				'Tài liệu API (Swagger/OpenAPI) cho hệ thống bản đồ văn hoá. Swagger được generate từ comment trong router.',
 		},
-		servers: [
-			{ url: `http://localhost:${process.env.PORT || 5000}`, description: 'Local dev' },
-			{
-				url: process.env.PUBLIC_BASE_URL || 'https://unlumped-inexpugnable-brandee.ngrok-free.dev/',
-				description: 'Public',
-			},
-		],
 		tags: [
 			{ name: 'Auth', description: 'API đăng nhập/đăng ký' },
 			{ name: 'User', description: 'API liên quan đến người dùng' },
@@ -73,8 +66,34 @@ const swaggerSpec = swaggerJSDoc({
 	apis: ['./src/routes/*.js'],
 });
 
-app.get('/api-docs.json', (req, res) => res.json(swaggerSpec));
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get('/api-docs.json', (req, res) => {
+	const protoHeader = req.headers['x-forwarded-proto'];
+	const proto = (Array.isArray(protoHeader) ? protoHeader[0] : protoHeader || req.protocol || 'https')
+		.toString()
+		.split(',')[0]
+		.trim();
+	const hostHeader = req.headers['x-forwarded-host'];
+	const host = (Array.isArray(hostHeader) ? hostHeader[0] : hostHeader) || req.get('host');
+	const baseUrl = host ? `${proto}://${host}` : '/';
+
+	return res.json({
+		...swaggerSpec,
+		servers: [
+			{ url: baseUrl, description: 'Current host' },
+			{ url: `http://localhost:${process.env.PORT || 5000}`, description: 'Local dev' },
+		],
+	});
+});
+
+app.use(
+	'/api-docs',
+	swaggerUi.serve,
+	swaggerUi.setup(null, {
+		swaggerOptions: {
+			url: '/api-docs.json',
+		},
+	})
+);
 
 initRoutes(app);
 
