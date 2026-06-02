@@ -16,7 +16,7 @@ class LocationController {
 
     async getLocationsByViewport(query) {
         const parsed = parseViewportQuery(query);
-        
+
         const { bounds, limit } = parsed;
 
         const where = {
@@ -31,7 +31,7 @@ class LocationController {
                 {
                     model: db.Place,
                     as: 'place',
-                    attributes: ['id', 'name'],
+                    attributes: ['id', 'name', 'description'],
                     required: true,
                     include: [
                         {
@@ -154,7 +154,7 @@ class LocationController {
         });
     }
 
-    async getAllLocations(page = 1, limit = 20) {        
+    async getAllLocations(page = 1, limit = 20) {
         const parsedPage = this.parsePositiveInt(page, 'page');
         const parsedLimit = this.parsePositiveInt(limit, 'limit');
         const offset = (parsedPage - 1) * parsedLimit;
@@ -167,14 +167,14 @@ class LocationController {
                 raw: true,
             });
             const count = countResult[0]?.total || 0;
-            
+
             const result = await Location.findAll({
                 attributes: ['id', 'lat', 'lng', 'address', 'place_id'],
                 include: [
                     {
                         model: db.Place,
                         as: 'place',
-                        attributes: ['id', 'name', 'description'],
+                        attributes: ['id', 'name', 'description', 'category_id'],
                         required: true,
                         include: [
                             {
@@ -183,18 +183,89 @@ class LocationController {
                                 attributes: ['id', 'name', 'icon_marker', 'color'],
                                 required: false,
                             },
+                            {
+                                model: db.Asset,
+                                as: 'assets',
+                                attributes: ['id', 'url', 'is_primary'],
+                                required: false,
+                            },
                         ],
                     },
                 ],
                 limit: parsedLimit,
                 offset: offset,
+                order: [
+                    ['id', 'ASC'],
+                ],
             });
-            
-            return { 
-                rows: result, 
-                count, 
-                page: parsedPage, 
-                limit: parsedLimit 
+
+            return {
+                rows: result,
+                count,
+                page: parsedPage,
+                limit: parsedLimit
+            };
+        } catch (err) {
+            throw err;
+        }
+    }
+    async getAllLocationsByCategory(page = 1, limit = 20,categoryId) {
+        const parsedPage = this.parsePositiveInt(page, 'page');
+        const parsedLimit = this.parsePositiveInt(limit, 'limit');
+        const offset = (parsedPage - 1) * parsedLimit;
+
+        try {
+            const countResult = await Location.findAll({
+                attributes: [
+                    [db.sequelize.fn('COUNT', db.sequelize.col('id')), 'total']
+                ],
+                include: [
+                    {
+                        model: db.Place,
+                        where: { category_id: categoryId },
+                        required: true,
+                    }
+                ],
+                raw: true,
+            });
+            const count = countResult[0]?.total || 0;
+
+            const result = await Location.findAll({
+                attributes: ['id', 'lat', 'lng', 'address', 'place_id'],
+                include: [
+                    {
+                        model: db.Place,
+                        as: 'place',
+                        attributes: ['id', 'name', 'description', 'category_id'],
+                        required: true,
+                        include: [
+                            {
+                                model: db.Category,
+                                as: 'category',
+                                attributes: ['id', 'name', 'icon_marker', 'color'],
+                                required: false,
+                            },
+                            {
+                                model: db.Asset,
+                                as: 'assets',
+                                attributes: ['id', 'url', 'is_primary'],
+                                required: false,
+                            },
+                        ],
+                    },
+                ],
+                limit: parsedLimit,
+                offset: offset,
+                order: [
+                    ['id', 'ASC'],
+                ],
+            });
+
+            return {
+                rows: result,
+                count,
+                page: parsedPage,
+                limit: parsedLimit
             };
         } catch (err) {
             throw err;

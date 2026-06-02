@@ -249,9 +249,10 @@ route.get('/', LocationManager.getAllLocations);
  *       '500':
  *         description: Internal server error
  */
+route.get('/getALL/categories/:categoryId', LocationManager.getALocationsByCategory);
 route.post('/', LocationManager.create);
 
-/**
+/** 
  * @openapi
  * /api/v1/location/{id}:
  *   get:

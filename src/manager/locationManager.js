@@ -202,7 +202,30 @@ class LocationManager {
             throw err;
         }
     });
+getALocationsByCategory = asyncHandler(async (req, res) => {
+        try {
+            console.log("🔵 getLocationsByCategory manager called");
+            const categoryId = Number(req.params.categoryId);
+            if (!Number.isInteger(categoryId) || categoryId <= 0) {
+                throw new HttpError(400, 'categoryId phải là một số nguyên dương');
+            }
 
+            const locations = await locationController.getLocationsByCategory(categoryId);
+            return sendSuccess(res, {
+                statusCode: 200,
+                message: 'OK',
+                data: locations,
+                meta: {
+                    count: locations.length,
+                    category_id: categoryId,
+                },
+            });
+        } catch (err) {
+            console.error("🔴 getLocationsByCategory manager error:", err.message);
+            console.error("🔴 Error:", err);
+            throw err;
+        }
+    });
     getAssetsByPlaceId = asyncHandler(async (req, res) => {
         const placeId = Number(req.params.placeId);
         if (!Number.isInteger(placeId) || placeId <= 0) {
