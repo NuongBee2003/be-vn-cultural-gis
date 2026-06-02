@@ -4,7 +4,6 @@ var _Asset = require("./asset");
 var _Category = require("./category");
 var _CheckIn = require("./checkIn");
 var _Comment = require("./comment");
-var _District = require("./district");
 var _Location = require("./location");
 var _Notification = require("./notification");
 var _Place = require("./place");
@@ -22,7 +21,6 @@ function initModels(sequelize) {
   var Category = _Category(sequelize, DataTypes);
   var CheckIn = _CheckIn(sequelize, DataTypes);
   var Comment = _Comment(sequelize, DataTypes);
-  var District = _District(sequelize, DataTypes);
   var Location = _Location(sequelize, DataTypes);
   var Notification = _Notification(sequelize, DataTypes);
   var Place = _Place(sequelize, DataTypes);
@@ -44,8 +42,6 @@ function initModels(sequelize) {
   Comment.hasMany(Comment, { as: "comments", foreignKey: "parent_id"});
   Notification.belongsTo(Comment, { as: "comment", foreignKey: "comment_id"});
   Comment.hasMany(Notification, { as: "notifications", foreignKey: "comment_id"});
-  Location.belongsTo(District, { as: "district", foreignKey: "district_id"});
-  District.hasMany(Location, { as: "locations", foreignKey: "district_id"});
   CheckIn.belongsTo(Location, { as: "location", foreignKey: "location_id"});
   Location.hasMany(CheckIn, { as: "check_ins", foreignKey: "location_id"});
   Post.belongsTo(Location, { as: "location", foreignKey: "location_id"});
@@ -93,7 +89,6 @@ function initModels(sequelize) {
     Category,
     CheckIn,
     Comment,
-    District,
     Location,
     Notification,
     Place,

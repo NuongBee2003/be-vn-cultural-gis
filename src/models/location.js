@@ -15,14 +15,7 @@ module.exports = function(sequelize, DataTypes) {
         key: 'id'
       }
     },
-    district_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'districts',
-        key: 'id'
-      }
-    },
+
     address: {
       type: DataTypes.STRING(255),
       allowNull: true
@@ -55,13 +48,7 @@ module.exports = function(sequelize, DataTypes) {
           { name: "place_id" },
         ]
       },
-      {
-        name: "locations_district_id_fkey",
-        using: "BTREE",
-        fields: [
-          { name: "district_id" },
-        ]
-      },
+
     ]
   });
 };

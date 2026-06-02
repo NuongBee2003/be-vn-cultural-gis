@@ -53,18 +53,12 @@ class PostController {
                 {
                     model: db.Location,
                     as: 'location',
-                    attributes: ['id', 'lat', 'lng', 'address', 'place_id', 'district_id'],
+                    attributes: ['id', 'lat', 'lng', 'address', 'place_id'],
                     required: false,
                     include: [
                         {
                             model: db.Place,
                             as: 'place',
-                            attributes: ['id', 'name'],
-                            required: false,
-                        },
-                        {
-                            model: db.District,
-                            as: 'district',
                             attributes: ['id', 'name'],
                             required: false,
                         },
@@ -87,18 +81,12 @@ class PostController {
                 {
                     model: db.Location,
                     as: 'location',
-                    attributes: ['id', 'lat', 'lng', 'address', 'place_id', 'district_id'],
+                    attributes: ['id', 'lat', 'lng', 'address', 'place_id'],
                     required: false,
                     include: [
                         {
                             model: db.Place,
                             as: 'place',
-                            attributes: ['id', 'name'],
-                            required: false,
-                        },
-                        {
-                            model: db.District,
-                            as: 'district',
                             attributes: ['id', 'name'],
                             required: false,
                         },

@@ -62,15 +62,9 @@ class PlaceController {
                 {
                     model: db.Location,
                     as: 'locations',
-                    attributes: ['id', 'lat', 'lng', 'address', 'district_id'],
+                    attributes: ['id', 'lat', 'lng', 'address'],
                     required: false,
                     include: [
-                        {
-                            model: db.District,
-                            as: 'district',
-                            attributes: ['id', 'name'],
-                            required: false,
-                        },
                         {
                             model: db.Review,
                             as: 'reviews',
@@ -141,16 +135,8 @@ class PlaceController {
                 {
                     model: db.Location,
                     as: 'locations',
-                    attributes: ['id', 'lat', 'lng', 'address', 'district_id'],
+                    attributes: ['id', 'lat', 'lng', 'address'],
                     required: true,
-                    include: [
-                        {
-                            model: db.District,
-                            as: 'district',
-                            attributes: ['id', 'name'],
-                            required: false,
-                        },
-                    ],
                 },
             ],
         });

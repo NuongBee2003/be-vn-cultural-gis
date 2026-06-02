@@ -20,12 +20,6 @@ module.exports = {
 				description: 'Lọc theo địa điểm (place).',
 				example: 12,
 			},
-			district_id: {
-				type: 'integer',
-				minimum: 1,
-				description: 'Lọc theo quận/huyện (district).',
-				example: 5,
-			},
 		},
 	},
 
@@ -65,7 +59,6 @@ module.exports = {
 				example: 'Phường Bến Thành, Quận 1, TP.HCM',
 			},
 			place_id: { type: 'integer', example: 12 },
-			district_id: { type: 'integer', example: 1 },
 			place: { $ref: '#/components/schemas/PlaceBrief' },
 		},
 	},
@@ -80,7 +73,6 @@ module.exports = {
 				example: '106.68575113624685,10.76988371401646,106.70763796180837,10.78931857765812',
 			},
 			place_id: { type: 'integer', nullable: true, example: 12 },
-			district_id: { type: 'integer', nullable: true, example: 5 },
 		},
 	},
 
@@ -252,14 +244,6 @@ module.exports = {
 					address: { type: 'string', nullable: true, example: 'Phường Bến Thành, Quận 1, TP.HCM' },
 					place_id: { type: 'integer', nullable: true, example: 12 },
 					place: { $ref: '#/components/schemas/PlaceBrief', nullable: true },
-					district: {
-						type: 'object',
-						nullable: true,
-						properties: {
-							id: { type: 'integer', example: 1 },
-							name: { type: 'string', example: 'Quận 1' },
-						},
-					},
 				},
 			},
 		},
@@ -310,12 +294,10 @@ module.exports = {
 
 	LocationCreateRequest: {
 		type: 'object',
-		required: ['district_id'],
 		properties: {
 			lat: { type: 'number', minimum: -90, maximum: 90, example: 10.77584 },
 			lng: { type: 'number', minimum: -180, maximum: 180, example: 106.70098 },
 			address: { type: 'string', example: 'Phường Bến Thành, Quận 1, TP.HCM' },
-			district_id: { type: 'integer', minimum: 1, example: 1 },
 		},
 	},
 

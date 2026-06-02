@@ -24,7 +24,7 @@ class LocationController {
         };
 
         return Location.findAll({
-            attributes: ['id', 'lat', 'lng', 'address', 'place_id', 'district_id'],
+            attributes: ['id', 'lat', 'lng', 'address', 'place_id'],
             where,
             include: [
                 {
@@ -48,10 +48,9 @@ class LocationController {
 
     async createLocation(payload, options = {}) {
         const { transaction } = options;
-        const { lat, lng, address, place_id, district_id } = payload;
+        const { lat, lng, address, place_id } = payload;
 
         const parsedPlaceId = this.parsePositiveInt(place_id, 'place_id');
-        const parsedDistrictId = this.parsePositiveInt(district_id, 'district_id');
 
         let parsedLat = null;
         if (lat !== undefined && lat !== null) {
@@ -74,7 +73,6 @@ class LocationController {
             lng: parsedLng,
             address,
             place_id: parsedPlaceId,
-            district_id: parsedDistrictId,
         }, transaction ? { transaction } : undefined);
 
         await db.Place.update(
@@ -101,7 +99,7 @@ class LocationController {
     async getLocationsByCategory(categoryId) {
 
         return Location.findAll({
-            attributes: ['id', 'lat', 'lng', 'address', 'place_id', 'district_id'],
+            attributes: ['id', 'lat', 'lng', 'address', 'place_id'],
             include: [
                 {
                     model: db.Place,
