@@ -97,6 +97,39 @@ class LocationController {
         return deleted;
     }
 
+    async updateLocation(location, payload, options = {}) {
+        const { transaction } = options;
+        const { lat, lng, address } = payload;
+
+        const updateData = {};
+
+        if (lat !== undefined && lat !== null) {
+            const parsedLat = Number(lat);
+            if (Number.isNaN(parsedLat) || parsedLat < -90 || parsedLat > 90) {
+                throw new HttpError(400, 'lat phải là một số giữa -90 và 180');
+            }
+            updateData.lat = parsedLat;
+        }
+
+        if (lng !== undefined && lng !== null) {
+            const parsedLng = Number(lng);
+            if (Number.isNaN(parsedLng) || parsedLng < -180 || parsedLng > 180) {
+                throw new HttpError(400, 'lng phải là một số giữa -180 và 180');
+            }
+            updateData.lng = parsedLng;
+        }
+
+        if (address !== undefined) {
+            updateData.address = address;
+        }
+
+        if (Object.keys(updateData).length > 0) {
+            await location.update(updateData, transaction ? { transaction } : undefined);
+        }
+
+        return location;
+    }
+
     async getLocationsByCategory(categoryId) {
 
         return Location.findAll({

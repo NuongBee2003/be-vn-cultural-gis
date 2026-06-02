@@ -1,9 +1,12 @@
 const locationController = require('../controller/LocationController');
+const placeController = require('../controller/PlaceController');
+const assetController = require('../controller/AssetController');
 const asyncHandler = require('../utils/asyncHandler');
 const HttpError = require('../utils/httpError');
 const { sendSuccess } = require('../utils/apiResponse');
 const redisClient = require('../config/redisClient');
 const { getTileKeysFromBbox } = require('../utils/geoTile');
+const db = require('../models');
 
 class LocationManager {
 
@@ -78,11 +81,37 @@ class LocationManager {
     });
 
     create = asyncHandler(async (req, res) => {
-        const location = await locationController.createLocation(req.body);
+        const { name, description, category_id, place_id, lat, lng, address, images } = req.body;
+
+        const result = await db.sequelize.transaction(async (t) => {
+            const opts = { transaction: t };
+
+            // 1. Xử lý Place: dùng place_id có sẵn hoặc tạo mới
+            let placeId;
+            if (place_id) {
+                placeId = Number(place_id);
+                if (!Number.isInteger(placeId) || placeId <= 0) {
+                    throw new HttpError(400, 'place_id phải là một số nguyên dương');
+                }
+            } else {
+                if (!name) throw new HttpError(400, 'name (tên địa điểm) là bắt buộc khi không truyền place_id');
+                const newPlace = await placeController.createPlace({ name, description, category_id }, opts);
+                placeId = newPlace.id;
+            }
+
+            // 2. Tạo Location
+            const location = await locationController.createLocation({ lat, lng, address, place_id: placeId }, opts);
+
+            // 3. Lưu Assets nếu có images
+            await assetController.createAssets(images || [], { place_id: placeId }, opts);
+
+            return location;
+        });
+
         return sendSuccess(res, {
             statusCode: 201,
             message: 'Created',
-            data: location,
+            data: result,
         });
     });
 
@@ -100,6 +129,45 @@ class LocationManager {
             statusCode: 200,
             message: 'Deleted',
             data: null,
+        });
+    });
+
+    update = asyncHandler(async (req, res) => {
+        const id = Number(req.params.id);
+        if (!Number.isInteger(id) || id <= 0) {
+            throw new HttpError(400, 'id phải là một số nguyên dương');
+        }
+
+        const { name, description, category_id, lat, lng, address, images } = req.body;
+
+        const location = await locationController.getLocationById(id);
+        if (!location) {
+            throw new HttpError(404, 'Location not found');
+        }
+
+        const result = await db.sequelize.transaction(async (t) => {
+            const opts = { transaction: t };
+
+            // 1. Cập nhật Place nếu có name/description/category_id
+            if (name !== undefined || description !== undefined || category_id !== undefined) {
+                await placeController.updatePlace(location.place_id, { name, description, category_id });
+            }
+
+            // 2. Cập nhật Location (lat, lng, address)
+            await locationController.updateLocation(location, { lat, lng, address }, opts);
+
+            // 3. Thay thế Assets nếu có images
+            if (images !== undefined) {
+                await assetController.replaceAssets(images, { place_id: location.place_id }, opts);
+            }
+
+            return location;
+        });
+
+        return sendSuccess(res, {
+            statusCode: 200,
+            message: 'Updated',
+            data: result,
         });
     });
 
