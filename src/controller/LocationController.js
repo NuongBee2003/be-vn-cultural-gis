@@ -37,7 +37,7 @@ class LocationController {
                         {
                             model: db.Category,
                             as: 'category',
-                            attributes: ['id', 'name', 'icon_marker'],
+                            attributes: ['id', 'name', 'icon_marker', 'color'],
                             required: false,
                         },
                     ],

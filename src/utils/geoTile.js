@@ -30,21 +30,18 @@ const getTileKeysFromBbox = (bboxStr) => {
     const parts = String(bboxStr).split(',').map((v) => Number(v.trim()));
     const [minLng, minLat, maxLng, maxLat] = parts;
 
-    const snappedMinLng = snapToTile(minLng);
-    const snappedMinLat = snapToTile(minLat);
-    const snappedMaxLng = snapToTile(maxLng);
-    const snappedMaxLat = snapToTile(maxLat);
+    // Làm tròn 3 chữ số thập phân (khoảng ~111 mét)
+    // Giúp các lượt kéo nhẹ bản đồ (pan) có cùng cache key
+    const rMinLng = minLng.toFixed(3);
+    const rMinLat = minLat.toFixed(3);
+    const rMaxLng = maxLng.toFixed(3);
+    const rMaxLat = maxLat.toFixed(3);
 
-    const tileKeys = [];
-    for (let lat = snappedMinLat; lat <= snappedMaxLat; lat = parseFloat((lat + TILE_SIZE).toFixed(6))) {
-        for (let lng = snappedMinLng; lng <= snappedMaxLng; lng = parseFloat((lng + TILE_SIZE).toFixed(6))) {
-            tileKeys.push(`geo_tile:lat_${lat}:lng_${lng}`);
-        }
-    }
+    const cacheKey = `geo_box:${rMinLng},${rMinLat},${rMaxLng},${rMaxLat}`;
 
     return {
-        tileKeys,
-        snappedBbox: { minLng: snappedMinLng, minLat: snappedMinLat, maxLng: snappedMaxLng, maxLat: snappedMaxLat }
+        tileKeys: [cacheKey],
+        snappedBbox: { minLng, minLat, maxLng, maxLat }
     };
 };
 

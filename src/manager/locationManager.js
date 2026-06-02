@@ -25,30 +25,18 @@ class LocationManager {
 
     getLocationsByGeo = asyncHandler(async (req, res) => {
         const input = req.body || {};
-        console.log("📥 Received request body:", input);
+        const cacheKey = `locations_geo:${JSON.stringify(input)}`;
 
-        // --- Tile-based caching ---
-        // Thay vì cache theo exact bbox (hit rate ~0% khi scroll),
-        // ta snap bbox về tile boundary cố định → cùng khu vực = cùng key.
-        // TILE_SIZE = 0.05 độ ≈ 5.5km, đủ chi tiết cho GIS đô thị.
-        let tileKey = null;
-        if (input.bbox) {
-            try {
-                const { tileKeys } = getTileKeysFromBbox(input.bbox);
-                // Ghép tất cả tile keys thành một composite key (thường 1-4 tile)
-                tileKey = `geo:${tileKeys.join('|')}:limit_${input.limit}`;
-
-                const cachedData = await redisClient.get(tileKey);
-                if (cachedData) {
-                    return sendSuccess(res, JSON.parse(cachedData));
-                }
-            } catch (err) {
-                console.error('Redis get error:', err);
+        try {
+            const cachedData = await redisClient.get(cacheKey);
+            if (cachedData) {
+                return sendSuccess(res, JSON.parse(cachedData));
             }
+        } catch (err) {
+            console.error('Redis get error:', err);
         }
 
         const locations = await locationController.getLocationsByViewport(input);
-        console.log("📦 Locations fetched:", locations.length);
 
         const responseData = {
             statusCode: 200,
@@ -61,13 +49,11 @@ class LocationManager {
             },
         };
 
-        // Lưu cache với TTL 10 phút (data geo không thay đổi quá thường xuyên)
-        if (tileKey) {
-            try {
-                await redisClient.setEx(tileKey, 600, JSON.stringify(responseData));
-            } catch (err) {
-                console.error('Redis set error:', err);
-            }
+        try {
+            // Cache 5 phút cho query chính xác
+            await redisClient.setEx(cacheKey, 300, JSON.stringify(responseData));
+        } catch (err) {
+            console.error('Redis set error:', err);
         }
 
         return sendSuccess(res, responseData);
