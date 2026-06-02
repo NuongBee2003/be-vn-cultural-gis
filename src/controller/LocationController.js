@@ -16,6 +16,7 @@ class LocationController {
 
     async getLocationsByViewport(query) {
         const parsed = parseViewportQuery(query);
+        
         const { bounds, limit } = parsed;
 
         const where = {
@@ -111,13 +112,60 @@ class LocationController {
                         {
                             model: db.Category,
                             as: 'category',
-                            attributes: ['id', 'name', 'icon_marker'],
+                            attributes: ['id', 'name', 'icon_marker', 'color'],
                             required: false,
                         },
                     ],
                 },
             ],
         });
+    }
+
+    async getAllLocations(page = 1, limit = 20) {        
+        const parsedPage = this.parsePositiveInt(page, 'page');
+        const parsedLimit = this.parsePositiveInt(limit, 'limit');
+        const offset = (parsedPage - 1) * parsedLimit;
+
+        try {
+            const countResult = await Location.findAll({
+                attributes: [
+                    [db.sequelize.fn('COUNT', db.sequelize.col('id')), 'total']
+                ],
+                raw: true,
+            });
+            const count = countResult[0]?.total || 0;
+            
+            const result = await Location.findAll({
+                attributes: ['id', 'lat', 'lng', 'address', 'place_id'],
+                include: [
+                    {
+                        model: db.Place,
+                        as: 'place',
+                        attributes: ['id', 'name'],
+                        required: true,
+                        include: [
+                            {
+                                model: db.Category,
+                                as: 'category',
+                                attributes: ['id', 'name', 'icon_marker', 'color'],
+                                required: false,
+                            },
+                        ],
+                    },
+                ],
+                limit: parsedLimit,
+                offset: offset,
+            });
+            
+            return { 
+                rows: result, 
+                count, 
+                page: parsedPage, 
+                limit: parsedLimit 
+            };
+        } catch (err) {
+            throw err;
+        }
     }
 }
 

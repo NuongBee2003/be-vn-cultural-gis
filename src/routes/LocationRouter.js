@@ -118,6 +118,39 @@ route.get('/category/:categoryId', LocationManager.getLocationsByCategory);
 
 /**
  * @openapi
+ * /api/v1/location:
+ *   get:
+ *     tags:
+ *       - Location
+ *     summary: Lấy tất cả locations (dành cho admin) - có phân trang
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Số trang (mặc định 1)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 20
+ *         description: Số items trên mỗi trang (mặc định 20)
+ *     responses:
+ *       '200':
+ *         description: OK
+ *       '400':
+ *         description: Bad Request
+ *       '500':
+ *         description: Internal server error
+ */
+route.get('/', LocationManager.getAllLocations);
+
+/**
+ * @openapi
  * /api/v1/location/{id}:
  *   get:
  *     tags:
