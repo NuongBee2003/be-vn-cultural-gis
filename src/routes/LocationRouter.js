@@ -13,6 +13,9 @@ const LocationManager = require('../manager/locationManager');
  *       Trả về các điểm (locations) nằm trong bbox. API join sang Place và Category để lấy thông tin hiển thị marker (ví dụ: place.name, category.icon_marker).
  *
  *       Lưu ý: Server hiện merge tham số từ querystring và JSON body; Swagger mô tả theo JSON body để dễ dùng.
+ *       
+ *       **Tối ưu hóa hiệu suất (Caching):** API này sử dụng cơ chế **Tile-based Caching** với Redis.
+ *       Bbox truyền vào sẽ được tự động snap về các grid cell (kích thước ~5.5km). Khi người dùng kéo thả bản đồ trong cùng một khu vực, API sẽ trả về kết quả ngay lập tức từ bộ nhớ đệm (thời gian sống: 10 phút), giúp giảm tải server và tăng tốc độ phản hồi.
  *     requestBody:
  *       required: true
  *       content:
