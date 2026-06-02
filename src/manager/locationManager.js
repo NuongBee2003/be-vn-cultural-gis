@@ -202,6 +202,25 @@ class LocationManager {
             throw err;
         }
     });
+
+    getAssetsByPlaceId = asyncHandler(async (req, res) => {
+        const placeId = Number(req.params.placeId);
+        if (!Number.isInteger(placeId) || placeId <= 0) {
+            throw new HttpError(400, 'placeId phải là một số nguyên dương');
+        }
+
+        const assets = await assetController.getAssets({ place_id: placeId });
+        
+        return sendSuccess(res, {
+            statusCode: 200,
+            message: 'OK',
+            data: assets,
+            meta: {
+                count: assets.length,
+                place_id: placeId,
+            },
+        });
+    });
 }
 
 module.exports = new LocationManager();

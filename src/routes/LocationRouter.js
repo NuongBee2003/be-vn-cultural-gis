@@ -412,4 +412,58 @@ route.put('/:id', LocationManager.update);
  */
 route.delete('/:id', LocationManager.delete);
 
+/**
+ * @openapi
+ * /api/v1/location/assets/{placeId}:
+ *   get:
+ *     tags:
+ *       - Location
+ *     summary: Lấy danh sách assets (hình ảnh) theo place_id
+ *     parameters:
+ *       - in: path
+ *         name: placeId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: ID của place cần lấy assets
+ *     responses:
+ *       '200':
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: OK
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       url:
+ *                         type: string
+ *                       is_primary:
+ *                         type: integer
+ *                 meta:
+ *                   type: object
+ *                   properties:
+ *                     count:
+ *                       type: integer
+ *                     place_id:
+ *                       type: integer
+ *       '400':
+ *         description: Bad Request
+ *       '500':
+ *         description: Internal server error
+ */
+route.get('/assets/:placeId', LocationManager.getAssetsByPlaceId);
+
 module.exports = route;
