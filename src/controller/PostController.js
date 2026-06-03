@@ -25,82 +25,112 @@ class PostController {
         return trimmed;
     }
 
-    isOwnerOrAdmin(post, user) {
-        if (!post || !user) return false;
-
+    isOwnerOrAdmin(record, user) {
+        if (!record || !user) return false;
         const role = String(user.role || '').toUpperCase();
-        return role === 'ADMIN' || Number(user.userId || user.id) === Number(post.user_id);
+        const currentUserId = Number(user.userId || user.id);
+        return role === 'ADMIN' || currentUserId === Number(record.user_id);
     }
 
+    /**
+     * Gắn editYN / delYN vào một bài post (đã ở dạng plain object).
+     * Đồng thời tính likeCount và likedYN từ mảng post_likes.
+     */
     addPermissionFlags(post, user) {
         const canEdit = this.isOwnerOrAdmin(post, user);
+        const currentUserId = Number(user.userId || user.id);
+
+        const likes = Array.isArray(post.post_likes) ? post.post_likes : [];
+        const likeCount = likes.length;
+        const likedYN = likes.some((l) => Number(l.user_id) === currentUserId) ? 'Y' : 'N';
+
+        // Gắn editYN/delYN vào từng comment
+        const comments = Array.isArray(post.comments)
+            ? post.comments.map((c) => this.addCommentPermissionFlags(c, user))
+            : [];
+
         return {
             ...post,
+            likeCount,
+            likedYN,
+            editYN: canEdit ? 'Y' : 'N',
+            delYN: canEdit ? 'Y' : 'N',
+            comments,
+        };
+    }
+
+    /**
+     * Gắn editYN / delYN vào một comment (đã ở dạng plain object).
+     */
+    addCommentPermissionFlags(comment, user) {
+        const canEdit = this.isOwnerOrAdmin(comment, user);
+        return {
+            ...comment,
             editYN: canEdit ? 'Y' : 'N',
             delYN: canEdit ? 'Y' : 'N',
         };
     }
 
+    _buildInclude() {
+        return [
+            {
+                model: db.User,
+                as: 'user',
+                attributes: ['id', 'username', 'avatar'],
+                required: false,
+            },
+            {
+                model: db.Location,
+                as: 'location',
+                attributes: ['id', 'lat', 'lng', 'address', 'place_id'],
+                required: false,
+                include: [
+                    {
+                        model: db.Place,
+                        as: 'place',
+                        attributes: ['id', 'name'],
+                        required: false,
+                    },
+                ],
+            },
+            {
+                model: db.Comment,
+                as: 'comments',
+                required: false,
+                include: [
+                    {
+                        model: db.User,
+                        as: 'user',
+                        attributes: ['id', 'username', 'avatar'],
+                        required: false,
+                    },
+                ],
+            },
+            {
+                model: db.PostLike,
+                as: 'post_likes',
+                attributes: ['user_id', 'created_at'],
+                required: false,
+            },
+        ];
+    }
+
     async getPostById(id) {
         return Post.findByPk(id, {
-            include: [
-                {
-                    model: db.User,
-                    as: 'user',
-                    attributes: ['id', 'username', 'avatar'],
-                    required: false,
-                },
-                {
-                    model: db.Location,
-                    as: 'location',
-                    attributes: ['id', 'lat', 'lng', 'address', 'place_id'],
-                    required: false,
-                    include: [
-                        {
-                            model: db.Place,
-                            as: 'place',
-                            attributes: ['id', 'name'],
-                            required: false,
-                        },
-                    ],
-                },
-            ],
+            include: this._buildInclude(),
         });
     }
 
     async getAllPosts(user) {
         const posts = await Post.findAll({
             order: [['created_at', 'DESC']],
-            include: [
-                {
-                    model: db.User,
-                    as: 'user',
-                    attributes: ['id', 'username', 'avatar'],
-                    required: false,
-                },
-                {
-                    model: db.Location,
-                    as: 'location',
-                    attributes: ['id', 'lat', 'lng', 'address', 'place_id'],
-                    required: false,
-                    include: [
-                        {
-                            model: db.Place,
-                            as: 'place',
-                            attributes: ['id', 'name'],
-                            required: false,
-                        },
-                    ],
-                },
-            ],
+            include: this._buildInclude(),
         });
 
-        const postList = posts.map((postInstance) => {
+        return posts.map((postInstance) => {
             const post = postInstance.toJSON ? postInstance.toJSON() : postInstance;
             return this.addPermissionFlags(post, user);
         });
-
-        return postList;
     }
 
     async createPost(payload, userIdInput) {

@@ -131,4 +131,30 @@ route.put('/:id', requireAuth, PostManager.update);
  */
 route.delete('/:id', requireAuth, PostManager.delete);
 
+/**
+ * @openapi
+ * /api/v1/post/{id}/like:
+ *   post:
+ *     tags:
+ *       - Post
+ *     summary: Toggle like / unlike bài post
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *     responses:
+ *       '200':
+ *         description: OK (trả về likedYN Y/N và likeCount mới)
+ *       '401':
+ *         description: Unauthorized
+ *       '404':
+ *         description: Post not found
+ */
+route.post('/:id/like', requireAuth, PostManager.toggleLike);
+
 module.exports = route;

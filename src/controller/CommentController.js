@@ -35,6 +35,41 @@ class CommentController {
         return Comment.findByPk(id);
     }
 
+    /**
+     * Lấy comment kèm thông tin user (dùng cho response sau create/update).
+     */
+    async getCommentWithUser(id) {
+        return Comment.findByPk(id, {
+            include: [
+                {
+                    model: db.User,
+                    as: 'user',
+                    attributes: ['id', 'username', 'avatar'],
+                    required: false,
+                },
+            ],
+        });
+    }
+
+    isOwnerOrAdmin(comment, user) {
+        if (!comment || !user) return false;
+        const role = String(user.role || '').toUpperCase();
+        const currentUserId = Number(user.userId || user.id);
+        return role === 'ADMIN' || currentUserId === Number(comment.user_id);
+    }
+
+    /**
+     * Gắn editYN / delYN vào comment (plain object).
+     */
+    addPermissionFlags(comment, user) {
+        const canEdit = this.isOwnerOrAdmin(comment, user);
+        return {
+            ...comment,
+            editYN: canEdit ? 'Y' : 'N',
+            delYN: canEdit ? 'Y' : 'N',
+        };
+    }
+
     async updateComment(comment, payload) {
         const normalizedContent = this.normalizeContent(payload?.content);
 

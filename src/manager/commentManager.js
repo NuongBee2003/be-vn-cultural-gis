@@ -18,10 +18,14 @@ class CommentManager {
             parent_id: payload.parent_id,
         });
 
+        // Fetch lại kèm user info để trả về đầy đủ
+        const full = await commentController.getCommentWithUser(comment.id);
+        const plain = full ? (full.toJSON ? full.toJSON() : full) : comment;
+
         return sendSuccess(res, {
             statusCode: 201,
             message: 'Created',
-            data: comment,
+            data: commentController.addPermissionFlags(plain, req.user || {}),
         });
     });
 
@@ -32,18 +36,20 @@ class CommentManager {
             throw new HttpError(404, 'Comment not found');
         }
 
-        const user = req.user || {};
-        const isAdmin = String(user.role || '').toUpperCase() === 'ADMIN';
-        if (!isAdmin && Number(req.userId) !== Number(comment.user_id)) {
+        if (!commentController.isOwnerOrAdmin(comment, req.user || {})) {
             throw new HttpError(403, 'Forbidden');
         }
 
-        const updatedComment = await commentController.updateComment(comment, req.body || {});
+        await commentController.updateComment(comment, req.body || {});
+
+        // Fetch lại kèm user info
+        const full = await commentController.getCommentWithUser(commentId);
+        const plain = full ? (full.toJSON ? full.toJSON() : full) : comment;
 
         return sendSuccess(res, {
             statusCode: 200,
             message: 'Updated',
-            data: updatedComment,
+            data: commentController.addPermissionFlags(plain, req.user || {}),
         });
     });
 
@@ -54,9 +60,7 @@ class CommentManager {
             throw new HttpError(404, 'Comment not found');
         }
 
-        const user = req.user || {};
-        const isAdmin = String(user.role || '').toUpperCase() === 'ADMIN';
-        if (!isAdmin && Number(req.userId) !== Number(comment.user_id)) {
+        if (!commentController.isOwnerOrAdmin(comment, req.user || {})) {
             throw new HttpError(403, 'Forbidden');
         }
 

@@ -2,6 +2,7 @@ const asyncHandler = require('../utils/asyncHandler');
 const { sendSuccess } = require('../utils/apiResponse');
 const HttpError = require('../utils/httpError');
 const postController = require('../controller/PostController');
+const db = require('../models');
 
 class PostManager {
     getAll = asyncHandler(async (req, res) => {
@@ -88,6 +89,47 @@ class PostManager {
             statusCode: 200,
             message: 'Deleted',
             data: null,
+        });
+    });
+
+    /**
+     * Toggle like / unlike:
+     * - Chưa like → tạo PostLike và trả về likedYN: 'Y'
+     * - Đã like   → xóa PostLike  và trả về likedYN: 'N'
+     */
+    toggleLike = asyncHandler(async (req, res) => {
+        const userId = req.userId;
+        if (!userId) {
+            throw new HttpError(401, 'Authentication required');
+        }
+
+        const postId = postController.parsePositiveInt(req.params.id, 'id');
+
+        // Kiểm tra post tồn tại
+        const post = await db.Post.findByPk(postId);
+        if (!post) {
+            throw new HttpError(404, 'Post not found');
+        }
+
+        const existing = await db.PostLike.findOne({
+            where: { post_id: postId, user_id: userId },
+        });
+
+        let likedYN;
+        if (existing) {
+            await existing.destroy();
+            likedYN = 'N';
+        } else {
+            await db.PostLike.create({ post_id: postId, user_id: userId });
+            likedYN = 'Y';
+        }
+
+        const likeCount = await db.PostLike.count({ where: { post_id: postId } });
+
+        return sendSuccess(res, {
+            statusCode: 200,
+            message: likedYN === 'Y' ? 'Liked' : 'Unliked',
+            data: { post_id: postId, likedYN, likeCount },
         });
     });
 }
