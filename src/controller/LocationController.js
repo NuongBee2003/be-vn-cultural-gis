@@ -146,7 +146,7 @@ class LocationController {
         {
           model: db.Place,
           as: "place",
-          attributes: ["id", "name", "category_id"],
+          attributes: ["id", "name", "description", "category_id"],
           where: { category_id: categoryId },
           required: true,
           include: [
