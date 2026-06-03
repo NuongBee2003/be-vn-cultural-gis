@@ -118,6 +118,99 @@ route.get('/category/:categoryId', LocationManager.getLocationsByCategory);
 
 /**
  * @openapi
+ * /api/v1/location/getALL/categories/{categoryId}:
+ *   get:
+ *     tags:
+ *       - Location
+ *     summary: Lấy danh sách địa điểm theo category có phân trang
+ *     description: >
+ *       Trả về danh sách locations thuộc categoryId với phân trang đầy đủ.
+ *       Kèm thông tin Place, Category (icon_marker, color) và ảnh đại diện (assets).
+ *     parameters:
+ *       - in: path
+ *         name: categoryId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: ID của category cần lọc
+ *         example: 4
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Số trang (mặc định 1)
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *         description: Số items mỗi trang (mặc định 10, tối đa 100)
+ *       - in: query
+ *         name: categoryId
+ *         schema:
+ *           type: integer
+ *         description: (Tùy chọn) Ghi đè categoryId trong path nếu cần
+ *     responses:
+ *       '200':
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: OK
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/LocationMarker'
+ *                 meta:
+ *                   type: object
+ *                   properties:
+ *                     total:
+ *                       type: integer
+ *                       example: 50
+ *                     count:
+ *                       type: integer
+ *                       example: 10
+ *                     page:
+ *                       type: integer
+ *                       example: 1
+ *                     limit:
+ *                       type: integer
+ *                       example: 10
+ *                     totalPages:
+ *                       type: integer
+ *                       example: 5
+ *                     category_id:
+ *                       type: integer
+ *                       example: 4
+ *       '400':
+ *         description: Dữ liệu đầu vào không hợp lệ
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       '500':
+ *         description: Lỗi hệ thống
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+route.get('/getALL/categories/:categoryId', LocationManager.getLocationsByCategoryPaginated);
+
+/**
+ * @openapi
  * /api/v1/location:
  *   get:
  *     tags:

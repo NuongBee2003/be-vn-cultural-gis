@@ -80,6 +80,33 @@ class LocationManager {
         });
     });
 
+    getLocationsByCategoryPaginated = asyncHandler(async (req, res) => {
+        const categoryId = Number(req.params.categoryId);
+        if (!Number.isInteger(categoryId) || categoryId <= 0) {
+            throw new HttpError(400, 'categoryId phải là một số nguyên dương');
+        }
+
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+
+        const result = await locationController.getLocationsByCategoryPaginated(categoryId, page, limit);
+        const totalPages = Math.ceil(result.count / result.limit);
+
+        return sendSuccess(res, {
+            statusCode: 200,
+            message: 'OK',
+            data: result.rows,
+            meta: {
+                total: result.count,
+                count: result.rows.length,
+                page: result.page,
+                limit: result.limit,
+                totalPages,
+                category_id: categoryId,
+            },
+        });
+    });
+
     create = asyncHandler(async (req, res) => {
         const { name, description, category_id, place_id, lat, lng, address, images } = req.body;
 

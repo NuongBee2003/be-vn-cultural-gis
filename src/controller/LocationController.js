@@ -154,6 +154,51 @@ class LocationController {
         });
     }
 
+    async getLocationsByCategoryPaginated(categoryId, page = 1, limit = 10) {
+        const parsedCategoryId = this.parsePositiveInt(categoryId, 'categoryId');
+        const parsedPage = this.parsePositiveInt(page, 'page');
+        const parsedLimit = Math.min(this.parsePositiveInt(limit, 'limit'), 100); // tối đa 100
+        const offset = (parsedPage - 1) * parsedLimit;
+
+        const { count, rows } = await Location.findAndCountAll({
+            attributes: ['id', 'lat', 'lng', 'address', 'place_id'],
+            include: [
+                {
+                    model: db.Place,
+                    as: 'place',
+                    attributes: ['id', 'name', 'category_id'],
+                    where: { category_id: parsedCategoryId },
+                    required: true,
+                    include: [
+                        {
+                            model: db.Category,
+                            as: 'category',
+                            attributes: ['id', 'name', 'icon_marker', 'color'],
+                            required: false,
+                        },
+                        {
+                            model: db.Asset,
+                            as: 'assets',
+                            attributes: ['id', 'url', 'is_primary'],
+                            required: false,
+                            where: { post_id: null, review_id: null },
+                        },
+                    ],
+                },
+            ],
+            limit: parsedLimit,
+            offset,
+            distinct: true, // cần thiết khi có include để đếm đúng
+        });
+
+        return {
+            rows,
+            count,
+            page: parsedPage,
+            limit: parsedLimit,
+        };
+    }
+
     async getAllLocations(page = 1, limit = 20) {        
         const parsedPage = this.parsePositiveInt(page, 'page');
         const parsedLimit = this.parsePositiveInt(limit, 'limit');
