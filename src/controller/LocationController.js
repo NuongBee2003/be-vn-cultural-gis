@@ -213,15 +213,7 @@ class LocationController {
     const offset = (parsedPage - 1) * parsedLimit;
 
     try {
-      const countResult = await Location.findAll({
-        attributes: [
-          [db.sequelize.fn("COUNT", db.sequelize.col("id")), "total"],
-        ],
-        raw: true,
-      });
-      const count = countResult[0]?.total || 0;
-
-      const result = await Location.findAll({
+      const { count, rows } = await Location.findAndCountAll({
         attributes: ["id", "lat", "lng", "address", "place_id"],
         include: [
           {
@@ -246,12 +238,13 @@ class LocationController {
           },
         ],
         limit: parsedLimit,
-        offset: offset,
+        offset,
         order: [["id", "ASC"]],
+        distinct: true, // cần thiết khi có include để đếm đúng
       });
 
       return {
-        rows: result,
+        rows,
         count,
         page: parsedPage,
         limit: parsedLimit,
@@ -266,28 +259,14 @@ class LocationController {
     const offset = (parsedPage - 1) * parsedLimit;
 
     try {
-      const countResult = await Location.findAll({
-        attributes: [
-          [db.sequelize.fn("COUNT", db.sequelize.col("id")), "total"],
-        ],
-        include: [
-          {
-            model: db.Place,
-            where: { category_id: categoryId },
-            required: true,
-          },
-        ],
-        raw: true,
-      });
-      const count = countResult[0]?.total || 0;
-
-      const result = await Location.findAll({
+      const { count, rows } = await Location.findAndCountAll({
         attributes: ["id", "lat", "lng", "address", "place_id"],
         include: [
           {
             model: db.Place,
             as: "place",
             attributes: ["id", "name", "description", "category_id"],
+            where: { category_id: categoryId },
             required: true,
             include: [
               {
@@ -306,12 +285,13 @@ class LocationController {
           },
         ],
         limit: parsedLimit,
-        offset: offset,
+        offset,
         order: [["id", "ASC"]],
+        distinct: true,
       });
 
       return {
-        rows: result,
+        rows,
         count,
         page: parsedPage,
         limit: parsedLimit,
