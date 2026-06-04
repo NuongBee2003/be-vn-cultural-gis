@@ -1,4 +1,6 @@
 const { getClient, isEnabled } = require('../services/elasticsearchClient');
+const { Op, literal } = require('sequelize');
+const db = require('../models');
 
 class SearchController {
     getPlaceLocationsIndex() {
@@ -232,6 +234,188 @@ class SearchController {
 
                 ...((hit && hit._source) || {}),
             })),
+        };
+    }
+
+    /**
+     * Tìm kiếm location bằng DB (không cần Elasticsearch).
+     * Hỗ trợ tiếng Việt: tìm có dấu lẫn không dấu.
+     *
+     * @param {object} params
+     * @param {string} params.query  - Từ khóa tìm kiếm
+     * @param {number} [params.page=1]
+     * @param {number} [params.limit=20]
+     */
+    async searchPlaceLocationsByDB({
+        query,
+        page = 1,
+        limit = 20,
+    }) {
+        const text =
+            typeof query === 'string'
+                ? query.trim()
+                : '';
+
+        if (!text) {
+            const err = new Error('query is required');
+            err.statusCode = 400;
+            err.code = 'VALIDATION_ERROR';
+            err.expose = true;
+            throw err;
+        }
+
+        const pageNum = Math.max(Number(page) || 1, 1);
+        const limitNum = Math.min(Math.max(Number(limit) || 20, 1), 100);
+        const offset = (pageNum - 1) * limitNum;
+
+        // Tạo pattern LIKE cho text gốc (có dấu)
+        const likePattern = `%${text}%`;
+
+        // Normalize không dấu để tìm kiếm kiểu "chua" → "Chùa"
+        const foldedText = this.foldVietnameseText(text);
+
+        // Dùng MySQL REGEXP_REPLACE hoặc collation để so sánh không dấu.
+        // Với utf8mb4_unicode_ci, MySQL tự coi "chua" ≈ "chùa" ở một số trường hợp,
+        // nhưng để chắc chắn ta dùng thêm literal SQL để so sánh không dấu.
+        const foldedLike = `%${foldedText}%`;
+
+        const wherePlace = {
+            [Op.or]: [
+                // Tìm theo tên gốc (có dấu)
+                literal(
+                    `LOWER(\`Place\`.\`name\`) LIKE ${db.sequelize.escape(likePattern.toLowerCase())}`
+                ),
+                // Tìm theo tên không dấu (MySQL built-in collation sẽ xử lý)
+                literal(
+                    `LOWER(CONVERT(\`Place\`.\`name\` USING utf8mb4)) COLLATE utf8mb4_unicode_ci LIKE ${db.sequelize.escape(foldedLike)}`
+                ),
+            ],
+        };
+
+        const whereLocation = {
+            [Op.or]: [
+                literal(
+                    `LOWER(\`Location\`.\`address\`) LIKE ${db.sequelize.escape(likePattern.toLowerCase())}`
+                ),
+                literal(
+                    `LOWER(CONVERT(\`Location\`.\`address\` USING utf8mb4)) COLLATE utf8mb4_unicode_ci LIKE ${db.sequelize.escape(foldedLike)}`
+                ),
+            ],
+        };
+
+        // Query: tìm Place có name khớp hoặc Location có address khớp
+        const { count, rows } = await db.Place.findAndCountAll({
+            where: wherePlace,
+            attributes: ['id', 'name', 'description', 'category_id'],
+            include: [
+                {
+                    model: db.Location,
+                    as: 'locations',
+                    attributes: ['id', 'lat', 'lng', 'address'],
+                    required: false,
+                },
+                {
+                    model: db.Asset,
+                    as: 'assets',
+                    attributes: ['id', 'url', 'is_primary'],
+                    required: false,
+                    where: {
+                        post_id: null,
+                        review_id: null,
+                    },
+                },
+                {
+                    model: db.Category,
+                    as: 'category',
+                    attributes: ['id', 'name', 'icon_marker', 'color'],
+                    required: false,
+                },
+            ],
+            limit: limitNum,
+            offset,
+            distinct: true,
+            subQuery: false,
+        });
+
+        // Nếu không tìm thấy theo tên Place, thử tìm thêm theo địa chỉ Location
+        let extraFromAddress = [];
+        const foundIds = new Set(rows.map((r) => r.id));
+
+        const locationMatches = await db.Location.findAll({
+            where: whereLocation,
+            attributes: ['place_id'],
+            raw: true,
+        });
+
+        const extraPlaceIds = [
+            ...new Set(
+                locationMatches
+                    .map((l) => l.place_id)
+                    .filter((pid) => !foundIds.has(pid))
+            ),
+        ];
+
+        if (extraPlaceIds.length > 0) {
+            extraFromAddress = await db.Place.findAll({
+                where: { id: { [Op.in]: extraPlaceIds } },
+                attributes: ['id', 'name', 'description', 'category_id'],
+                include: [
+                    {
+                        model: db.Location,
+                        as: 'locations',
+                        attributes: ['id', 'lat', 'lng', 'address'],
+                        required: false,
+                    },
+                    {
+                        model: db.Asset,
+                        as: 'assets',
+                        attributes: ['id', 'url', 'is_primary'],
+                        required: false,
+                        where: {
+                            post_id: null,
+                            review_id: null,
+                        },
+                    },
+                    {
+                        model: db.Category,
+                        as: 'category',
+                        attributes: ['id', 'name', 'icon_marker', 'color'],
+                        required: false,
+                    },
+                ],
+            });
+        }
+
+        const allRows = [...rows, ...extraFromAddress];
+        const total = count + extraPlaceIds.length;
+
+        const items = allRows.map((place) => {
+            const placeJson = place.toJSON();
+            const primaryAsset =
+                (placeJson.assets || []).find((a) => a.is_primary) ||
+                (placeJson.assets || [])[0] ||
+                null;
+
+            return {
+                place_id: placeJson.id,
+                name: placeJson.name,
+                description: placeJson.description,
+                category: placeJson.category || null,
+                thumbnail: primaryAsset ? primaryAsset.url : null,
+                locations: (placeJson.locations || []).map((loc) => ({
+                    location_id: loc.id,
+                    lat: loc.lat ? Number(loc.lat) : null,
+                    lng: loc.lng ? Number(loc.lng) : null,
+                    address: loc.address,
+                })),
+            };
+        });
+
+        return {
+            page: pageNum,
+            limit: limitNum,
+            total,
+            items,
         };
     }
 }

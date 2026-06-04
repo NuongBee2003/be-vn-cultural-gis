@@ -89,4 +89,101 @@ const SearchManager = require('../manager/searchManager');
  */
 route.get('/place-locations', SearchManager.placeLocations);
 
+/**
+ * @openapi
+ * /api/v1/search/place-locations-db:
+ *   get:
+ *     tags:
+ *       - Search
+ *     summary: Tìm kiếm location bằng DB (không cần Elasticsearch)
+ *     description: |
+ *       Tìm kiếm địa điểm theo `query` trực tiếp từ database (MySQL/Sequelize).
+ *
+ *       - Hỗ trợ tiếng Việt **có dấu** lẫn **không dấu** (ví dụ "chua" → "Chùa Thiên Mụ").
+ *       - Tìm theo `Place.name` và `Location.address`.
+ *       - Phân trang qua `page` và `limit`.
+ *     parameters:
+ *       - in: query
+ *         name: query
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Từ khóa tìm kiếm (tiếng Việt có/không dấu đều được).
+ *         example: chua thien mu
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Trang hiện tại
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Số kết quả mỗi trang (tối đa 100)
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: OK
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       place_id:
+ *                         type: integer
+ *                         example: 3
+ *                       name:
+ *                         type: string
+ *                         example: Chùa Thiên Mụ
+ *                       description:
+ *                         type: string
+ *                       thumbnail:
+ *                         type: string
+ *                         nullable: true
+ *                         example: https://example.com/image.jpg
+ *                       category:
+ *                         type: object
+ *                         nullable: true
+ *                       locations:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             location_id:
+ *                               type: integer
+ *                             lat:
+ *                               type: number
+ *                             lng:
+ *                               type: number
+ *                             address:
+ *                               type: string
+ *                 meta:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                       example: 1
+ *                     limit:
+ *                       type: integer
+ *                       example: 20
+ *                     total:
+ *                       type: integer
+ *                       example: 5
+ *       400:
+ *         description: Thiếu query
+ */
+route.get('/place-locations-db', SearchManager.placeLocationsByDB);
+
 module.exports = route;

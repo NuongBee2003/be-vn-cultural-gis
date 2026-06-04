@@ -18,6 +18,27 @@ class SearchManager {
             },
         });
     });
+
+    // GET /api/v1/search/place-locations-db?query=...&page=1&limit=20
+    placeLocationsByDB = asyncHandler(async (req, res) => {
+        const { query, page, limit } = req.query || {};
+        const data = await searchController.searchPlaceLocationsByDB({
+            query,
+            page,
+            limit,
+        });
+
+        return sendSuccess(res, {
+            statusCode: 200,
+            message: 'OK',
+            data: data.items,
+            meta: {
+                page: data.page,
+                limit: data.limit,
+                total: data.total,
+            },
+        });
+    });
 }
 
 module.exports = new SearchManager();
