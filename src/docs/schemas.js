@@ -90,6 +90,8 @@ module.exports = {
 		},
 	},
 
+	// ── Comment schemas ──────────────────────────────────────────────────────
+
 	CommentCreateRequest: {
 		type: 'object',
 		required: ['post_id', 'content'],
@@ -118,6 +120,17 @@ module.exports = {
 		},
 	},
 
+	/** Thông tin user tóm tắt (dùng trong comment/review) */
+	UserBrief: {
+		type: 'object',
+		properties: {
+			id: { type: 'integer', example: 5 },
+			username: { type: 'string', example: 'nguyen_minh_tuan' },
+			avatar: { type: 'string', nullable: true, example: 'https://example.com/avatar.png' },
+		},
+	},
+
+	/** Comment item dùng trong response (có user + permission flags) */
 	CommentData: {
 		type: 'object',
 		properties: {
@@ -127,6 +140,9 @@ module.exports = {
 			parent_id: { type: 'integer', nullable: true, example: 2 },
 			content: { type: 'string', example: 'Bài viết rất hay!' },
 			created_at: { type: 'string', format: 'date-time', example: '2024-03-01T12:00:00.000Z' },
+			user: { $ref: '#/components/schemas/UserBrief', nullable: true },
+			editYN: { type: 'string', enum: ['Y', 'N'], example: 'Y', description: 'Y nếu user hiện tại có quyền sửa.' },
+			delYN:  { type: 'string', enum: ['Y', 'N'], example: 'Y', description: 'Y nếu user hiện tại có quyền xóa.' },
 		},
 	},
 
@@ -139,6 +155,54 @@ module.exports = {
 			data: { $ref: '#/components/schemas/CommentData' },
 		},
 	},
+
+	/**
+	 * Comment item với replies lồng nhau — dùng cho GET /post/:id/comments
+	 */
+	PostCommentItem: {
+		type: 'object',
+		properties: {
+			id: { type: 'integer', example: 1 },
+			post_id: { type: 'integer', example: 10 },
+			user_id: { type: 'integer', example: 5 },
+			parent_id: { type: 'integer', nullable: true, example: null },
+			content: { type: 'string', example: 'Địa điểm này thật đẹp!' },
+			created_at: { type: 'string', format: 'date-time', example: '2026-06-01T09:00:00.000Z' },
+			user: { $ref: '#/components/schemas/UserBrief', nullable: true },
+			editYN: { type: 'string', enum: ['Y', 'N'], example: 'N' },
+			delYN:  { type: 'string', enum: ['Y', 'N'], example: 'N' },
+			replyCount: { type: 'integer', example: 2, description: 'Số lượng replies của comment gốc này.' },
+			replies: {
+				type: 'array',
+				description: 'Danh sách replies (comment con), chỉ ở comment gốc (parent_id = null).',
+				items: { $ref: '#/components/schemas/CommentData' },
+			},
+		},
+	},
+
+	/** Response phân trang cho GET /post/:id/comments */
+	PostCommentsPagedResponse: {
+		type: 'object',
+		required: ['success', 'message', 'data'],
+		properties: {
+			success: { type: 'boolean', example: true },
+			message: { type: 'string', example: 'OK' },
+			data: {
+				type: 'object',
+				properties: {
+					data: {
+						type: 'array',
+						items: { $ref: '#/components/schemas/PostCommentItem' },
+					},
+					total: { type: 'integer', example: 42, description: 'Tổng số comment gốc.' },
+					page: { type: 'integer', example: 1 },
+					totalPages: { type: 'integer', example: 5 },
+				},
+			},
+		},
+	},
+
+	// ── Place / Review schemas ───────────────────────────────────────────────
 
 	PlaceReviewCreateRequest: {
 		type: 'object',
@@ -168,10 +232,7 @@ module.exports = {
 			rating: { type: 'integer', example: 5 },
 			comment: { type: 'string', nullable: true, example: 'Địa điểm rất đáng ghé thăm.' },
 			created_at: { type: 'string', format: 'date-time', example: '2026-05-28T10:00:00.000Z' },
-			user: {
-				$ref: '#/components/schemas/UserProfile',
-				nullable: true,
-			},
+			user: { $ref: '#/components/schemas/UserBrief', nullable: true },
 			location: {
 				type: 'object',
 				nullable: true,
@@ -181,10 +242,7 @@ module.exports = {
 					lng: { type: 'number', nullable: true, example: 106.70098 },
 					address: { type: 'string', nullable: true, example: 'Phường Bến Thành, Quận 1, TP.HCM' },
 					place_id: { type: 'integer', example: 12 },
-					place: {
-						$ref: '#/components/schemas/PlaceBrief',
-						nullable: true,
-					},
+					place: { $ref: '#/components/schemas/PlaceBrief', nullable: true },
 				},
 			},
 		},
@@ -199,6 +257,8 @@ module.exports = {
 			data: { $ref: '#/components/schemas/PlaceReviewData' },
 		},
 	},
+
+	// ── Post schemas ─────────────────────────────────────────────────────────
 
 	PostCreateRequest: {
 		type: 'object',
@@ -229,11 +289,11 @@ module.exports = {
 			location_id: { type: 'integer', nullable: true, example: 10 },
 			title: { type: 'string', example: 'Một bài viết mới' },
 			content: { type: 'string', example: 'Nội dung bài viết' },
-			status: { type: 'string', example: 'accepted' },
+			status: { type: 'string', enum: ['pending', 'accepted', 'rejected'], example: 'accepted' },
 			created_at: { type: 'string', format: 'date-time', example: '2026-05-28T10:00:00.000Z' },
 			editYN: { type: 'string', enum: ['Y', 'N'], example: 'Y' },
-			delYN: { type: 'string', enum: ['Y', 'N'], example: 'Y' },
-			user: { $ref: '#/components/schemas/UserProfile', nullable: true },
+			delYN:  { type: 'string', enum: ['Y', 'N'], example: 'Y' },
+			user: { $ref: '#/components/schemas/UserBrief', nullable: true },
 			location: {
 				type: 'object',
 				nullable: true,
@@ -272,6 +332,8 @@ module.exports = {
 		},
 	},
 
+	// ── Common ───────────────────────────────────────────────────────────────
+
 	ErrorResponse: {
 		type: 'object',
 		required: ['success', 'message', 'error'],
@@ -291,6 +353,8 @@ module.exports = {
 			},
 		},
 	},
+
+	// ── Location / Place create ───────────────────────────────────────────────
 
 	LocationCreateRequest: {
 		type: 'object',
@@ -316,13 +380,15 @@ module.exports = {
 		},
 	},
 
+	// ── Auth / User schemas ───────────────────────────────────────────────────
+
 	UserProfile: {
 		type: 'object',
 		properties: {
 			id: { type: 'integer', example: 10 },
 			username: { type: 'string', example: 'nguyenvana' },
 			email: { type: 'string', example: 'user@example.com' },
-			role: { type: 'string', example: 'user' },
+			role: { type: 'string', enum: ['admin', 'user'], example: 'user' },
 			avatar: { type: 'string', nullable: true, example: 'https://example.com/avatar.png' },
 			created_at: { type: 'string', format: 'date-time', example: '2024-01-01T10:00:00.000Z' },
 		},

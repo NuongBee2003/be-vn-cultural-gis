@@ -75,6 +75,7 @@ route.get('/:id', PlaceManager.getDetail);
  *         description: Place not found
  */
 route.post('/:id/review', requireAuth, PlaceManager.createReview);
+route.delete('/:id/review/:reviewId', requireAuth, PlaceManager.deleteReview);
 /**
  * @openapi
  * /api/v1/place:

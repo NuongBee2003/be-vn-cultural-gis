@@ -131,6 +131,35 @@ class PlaceManager {
             data: review,
         });
     });
+
+    deleteReview = asyncHandler(async (req, res) => {
+        const db = require('../models');
+        const reviewId = Number(req.params.reviewId);
+        if (!Number.isInteger(reviewId) || reviewId <= 0) {
+            throw new HttpError(400, 'reviewId phải là số nguyên dương');
+        }
+
+        const review = await db.Review.findByPk(reviewId);
+        if (!review) {
+            throw new HttpError(404, 'Review not found');
+        }
+
+        // Chỉ admin hoặc chủ review mới được xóa
+        const role = String(req.user?.role || '').toUpperCase();
+        const currentUserId = Number(req.user?.userId || req.user?.id || 0);
+        const isOwner = currentUserId === Number(review.user_id);
+        if (role !== 'ADMIN' && !isOwner) {
+            throw new HttpError(403, 'Forbidden');
+        }
+
+        await review.destroy();
+
+        return sendSuccess(res, {
+            statusCode: 200,
+            message: 'Deleted',
+            data: null,
+        });
+    });
 }
 
 module.exports = new PlaceManager();

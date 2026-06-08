@@ -132,6 +132,32 @@ class PostManager {
             data: { post_id: postId, likedYN, likeCount },
         });
     });
+
+    getComments = asyncHandler(async (req, res) => {
+        const postId = postController.parsePositiveInt(req.params.id, 'id');
+
+        // Kiểm tra post tồn tại
+        const post = await db.Post.findByPk(postId);
+        if (!post) {
+            throw new HttpError(404, 'Post not found');
+        }
+
+        const page  = Number(req.query.page)  || 1;
+        const limit = Number(req.query.limit) || 10;
+
+        const commentController = require('../controller/CommentController');
+        const result = await commentController.getCommentsByPost(postId, {
+            page,
+            limit,
+            user: req.user || {},
+        });
+
+        return sendSuccess(res, {
+            statusCode: 200,
+            message: 'OK',
+            data: result,
+        });
+    });
 }
 
 module.exports = new PostManager();

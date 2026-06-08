@@ -157,4 +157,52 @@ route.delete('/:id', requireAuth, PostManager.delete);
  */
 route.post('/:id/like', requireAuth, PostManager.toggleLike);
 
+/**
+ * @openapi
+ * /api/v1/post/{id}/comments:
+ *   get:
+ *     tags:
+ *       - Post
+ *     summary: Lấy danh sách comment của bài post (nested, có phân trang)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: ID của bài post
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Trang hiện tại
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *         description: Số comment gốc mỗi trang
+ *     responses:
+ *       '200':
+ *         description: OK — Danh sách comment gốc (nested replies), có phân trang
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PostCommentsPagedResponse'
+ *       '404':
+ *         description: Post not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+route.get('/:id/comments', optionalAuth, PostManager.getComments);
+
 module.exports = route;

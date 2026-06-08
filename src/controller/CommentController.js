@@ -190,6 +190,69 @@ class CommentController {
         });
         return comment.destroy(transaction ? { transaction } : undefined);
     }
+
+    /**
+     * Lấy danh sách comment (top-level) kèm replies lồng nhau và thông tin user.
+     * Chỉ lấy comment gốc (parent_id IS NULL), mỗi comment gốc chứa mảng replies.
+     *
+     * @param {number} postId
+     * @param {{ page?: number; limit?: number; user?: object }} options
+     * @returns {{ data: object[]; total: number; page: number; totalPages: number }}
+     */
+    async getCommentsByPost(postId, options = {}) {
+        const page  = Math.max(1, options.page  || 1);
+        const limit = Math.min(100, Math.max(1, options.limit || 10));
+        const offset = (page - 1) * limit;
+        const user  = options.user || {};
+
+        const userInclude = {
+            model: db.User,
+            as: 'user',
+            attributes: ['id', 'username', 'avatar'],
+            required: false,
+        };
+
+        // Đếm tổng comment gốc
+        const total = await Comment.count({
+            where: { post_id: postId, parent_id: null },
+        });
+
+        // Lấy comment gốc kèm replies (1 cấp) và user
+        const rows = await Comment.findAll({
+            where: { post_id: postId, parent_id: null },
+            include: [
+                userInclude,
+                {
+                    model: db.Comment,
+                    as: 'comments',
+                    include: [userInclude],
+                    order: [['created_at', 'ASC']],
+                },
+            ],
+            order: [['created_at', 'DESC']],
+            limit,
+            offset,
+        });
+
+        const data = rows.map((row) => {
+            const plain = row.toJSON ? row.toJSON() : row;
+            const replies = (plain.comments || []).map((r) =>
+                this.addPermissionFlags(r, user)
+            );
+            return {
+                ...this.addPermissionFlags({ ...plain, comments: undefined }, user),
+                replies,
+                replyCount: replies.length,
+            };
+        });
+
+        return {
+            data,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit),
+        };
+    }
 }
 
 module.exports = new CommentController();
