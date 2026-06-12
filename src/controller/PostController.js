@@ -80,6 +80,11 @@ class PostController {
                 required: false,
             },
             {
+                model: db.Asset,
+                as: 'assets',
+                required: false,
+            },
+            {
                 model: db.Location,
                 as: 'location',
                 attributes: ['id', 'lat', 'lng', 'address', 'place_id'],
@@ -122,18 +127,48 @@ class PostController {
     }
 
     async getAllPosts(user) {
+        const currentUserId = user ? Number(user.userId || user.id) : null;
+        const whereClause = {};
+
+        // User thường chỉ thấy bài viết đã duyệt ('accepted') HOẶC bài viết của chính họ
+        const orConditions = [{ status: 'accepted' }];
+        if (currentUserId) {
+            orConditions.push({ user_id: currentUserId });
+        }
+        whereClause[db.Sequelize.Op.or] = orConditions;
+
         const posts = await Post.findAll({
+            where: whereClause,
             order: [['created_at', 'DESC']],
             include: this._buildInclude(),
         });
 
         return posts.map((postInstance) => {
             const post = postInstance.toJSON ? postInstance.toJSON() : postInstance;
-            return this.addPermissionFlags(post, user);
+            return this.addPermissionFlags(post, user || {});
         });
     }
 
-    async createPost(payload, userIdInput) {
+    async getAllPostsAdmin(queryParams = {}) {
+        const whereClause = {};
+
+        if (queryParams.status) {
+            whereClause.status = queryParams.status;
+        }
+
+        const posts = await Post.findAll({
+            where: whereClause,
+            order: [['created_at', 'DESC']],
+            include: this._buildInclude(),
+        });
+
+        return posts.map((postInstance) => {
+            const post = postInstance.toJSON ? postInstance.toJSON() : postInstance;
+            return this.addPermissionFlags(post, { role: 'admin' });
+        });
+    }
+
+    async createPost(payload, userIdInput, user) {
         const userId = this.parsePositiveInt(userIdInput, 'user_id');
         const title = this.normalizeText(payload?.title, 'title');
         const content = this.normalizeText(payload?.content, 'content');
@@ -147,18 +182,33 @@ class PostController {
             }
         }
 
+        const isAdmin = user && String(user.role || '').toLowerCase() === 'admin';
+        // User tạo -> pending, Admin tạo -> accepted (hoặc theo status truyền vào)
+        const status = isAdmin ? (payload?.status || 'accepted') : 'pending';
+
         const post = await Post.create({
             user_id: userId,
             location_id: locationId,
             title,
             content,
-            status: payload?.status || 'accepted',
+            status,
         });
+
+        // Insert assets (images) if provided
+        if (payload?.images && Array.isArray(payload.images)) {
+            for (const imageUrl of payload.images) {
+                await db.Asset.create({
+                    url: imageUrl,
+                    post_id: post.id,
+                    is_primary: false,
+                });
+            }
+        }
 
         return this.getPostById(post.id);
     }
 
-    async updatePost(post, payload) {
+    async updatePost(post, payload, user) {
         const updates = {};
 
         if (payload?.title !== undefined) {
@@ -182,8 +232,18 @@ class PostController {
             }
         }
 
-        if (payload?.status !== undefined) {
-            updates.status = this.normalizeText(payload.status, 'status');
+        const isAdmin = user && String(user.role || '').toLowerCase() === 'admin';
+        if (isAdmin) {
+            if (payload?.status !== undefined) {
+                const statusVal = this.normalizeText(payload.status, 'status');
+                if (!['pending', 'accepted', 'rejected'].includes(statusVal)) {
+                    throw new HttpError(400, "status phải là 'pending', 'accepted' hoặc 'rejected'");
+                }
+                updates.status = statusVal;
+            }
+        } else {
+            // User sửa -> ép về pending
+            updates.status = 'pending';
         }
 
         await post.update(updates);
@@ -191,6 +251,8 @@ class PostController {
     }
 
     async deletePost(post) {
+        // Delete post assets first to prevent constraint violations
+        await db.Asset.destroy({ where: { post_id: post.id } });
         await post.destroy();
         return { id: post.id };
     }

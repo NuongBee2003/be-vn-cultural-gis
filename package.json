@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@elastic/elasticsearch": "^8.18.2",
+    "@supabase/supabase-js": "^2.108.1",
     "@tanstack/react-query": "^5.100.14",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.2.2",

@@ -2,7 +2,7 @@ const express = require('express');
 const route = express.Router();
 
 const PostManager = require('../manager/postManager');
-const { requireAuth, optionalAuth } = require('../middleware');
+const { requireAuth, requireRole, optionalAuth } = require('../middleware');
 
 
 /**
@@ -19,6 +19,31 @@ const { requireAuth, optionalAuth } = require('../middleware');
  *         description: OK
  */
 route.get('/', optionalAuth, PostManager.getAll);
+
+/**
+ * @openapi
+ * /api/v1/post/admin:
+ *   get:
+ *     tags:
+ *       - Post
+ *     summary: Admin lấy danh sách tất cả bài post (có phân quyền)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *         description: Lọc bài viết theo trạng thái (pending, accepted, rejected)
+ *     responses:
+ *       '200':
+ *         description: OK
+ *       '401':
+ *         description: Unauthorized
+ *       '403':
+ *         description: Forbidden (Không phải admin)
+ */
+route.get('/admin', requireAuth, requireRole('admin'), PostManager.getAllAdmin);
 
 /**
  * @openapi
@@ -204,5 +229,49 @@ route.post('/:id/like', requireAuth, PostManager.toggleLike);
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 route.get('/:id/comments', optionalAuth, PostManager.getComments);
+
+/**
+ * @openapi
+ * /api/v1/post/{id}/review:
+ *   post:
+ *     tags:
+ *       - Post
+ *     summary: Admin phê duyệt hoặc từ chối bài post
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: ID của bài post cần duyệt
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [accepted, rejected]
+ *                 description: Trạng thái duyệt ('accepted' hoặc 'rejected')
+ *     responses:
+ *       '200':
+ *         description: OK
+ *       '400':
+ *         description: Bad Request
+ *       '401':
+ *         description: Unauthorized
+ *       '403':
+ *         description: Forbidden (Không phải Admin)
+ *       '404':
+ *         description: Post not found
+ */
+route.post('/:id/review', requireAuth, requireRole('admin'), PostManager.review);
 
 module.exports = route;

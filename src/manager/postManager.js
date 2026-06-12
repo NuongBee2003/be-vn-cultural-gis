@@ -15,6 +15,16 @@ class PostManager {
         });
     });
 
+    getAllAdmin = asyncHandler(async (req, res) => {
+        const posts = await postController.getAllPostsAdmin(req.query || {});
+
+        return sendSuccess(res, {
+            statusCode: 200,
+            message: 'OK',
+            data: posts,
+        });
+    });
+
     getDetail = asyncHandler(async (req, res) => {
         const postId = postController.parsePositiveInt(req.params.id, 'id');
         const post = await postController.getPostById(postId);
@@ -23,8 +33,16 @@ class PostManager {
             throw new HttpError(404, 'Post not found');
         }
 
+        const user = req.user || {};
+        const isAdmin = String(user.role || '').toLowerCase() === 'admin';
+        const currentUserId = Number(user.userId || user.id);
+
+        if (post.status !== 'accepted' && !isAdmin && Number(post.user_id) !== currentUserId) {
+            throw new HttpError(403, 'Bạn không có quyền truy cập bài viết này');
+        }
+
         const payload = post.toJSON ? post.toJSON() : post;
-        const data = postController.addPermissionFlags(payload, req.user || {});
+        const data = postController.addPermissionFlags(payload, user);
 
         return sendSuccess(res, {
             statusCode: 200,
@@ -39,7 +57,7 @@ class PostManager {
             throw new HttpError(401, 'Authentication required');
         }
 
-        const post = await postController.createPost(req.body || {}, userId);
+        const post = await postController.createPost(req.body || {}, userId, req.user || {});
         const payload = post.toJSON ? post.toJSON() : post;
 
         return sendSuccess(res, {
@@ -61,7 +79,7 @@ class PostManager {
             throw new HttpError(403, 'Forbidden');
         }
 
-        const updated = await postController.updatePost(post, req.body || {});
+        const updated = await postController.updatePost(post, req.body || {}, req.user || {});
         const payload = updated.toJSON ? updated.toJSON() : updated;
 
         return sendSuccess(res, {
@@ -156,6 +174,29 @@ class PostManager {
             statusCode: 200,
             message: 'OK',
             data: result,
+        });
+    });
+
+    review = asyncHandler(async (req, res) => {
+        const postId = postController.parsePositiveInt(req.params.id, 'id');
+        const post = await postController.getPostById(postId);
+
+        if (!post) {
+            throw new HttpError(404, 'Post not found');
+        }
+
+        const statusVal = req.body?.status;
+        if (!['accepted', 'rejected'].includes(statusVal)) {
+            throw new HttpError(400, "status phê duyệt phải là 'accepted' hoặc 'rejected'");
+        }
+
+        const updated = await postController.updatePost(post, { status: statusVal }, req.user || {});
+        const payload = updated.toJSON ? updated.toJSON() : updated;
+
+        return sendSuccess(res, {
+            statusCode: 200,
+            message: statusVal === 'accepted' ? 'Post approved successfully' : 'Post rejected successfully',
+            data: postController.addPermissionFlags(payload, req.user || {}),
         });
     });
 }
