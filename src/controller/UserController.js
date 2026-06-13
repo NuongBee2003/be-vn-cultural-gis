@@ -5,6 +5,13 @@ class UserController {
         return db.User.findAll();
     }
 
+    async getAllUsersAdmin() {
+        return db.User.findAll({
+            attributes: ['id', 'username', 'email', 'role', 'avatar', 'created_at'],
+            order: [['created_at', 'DESC']],
+        });
+    }
+
     async getUserByEmail(email) {
         return db.User.findOne({ where: { email } });
     }

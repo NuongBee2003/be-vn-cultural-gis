@@ -18,6 +18,7 @@ const { requireAuth, requireRole } = require("../middleware");
  *       '401':
  *         description: Unauthorized
  */
+route.get('/admin', requireAuth, requireRole('admin'), UserManager.getAllAdmin);
 route.get('/', requireAuth, requireRole('user'), UserManager.getAll);
 /**
  * @openapi
