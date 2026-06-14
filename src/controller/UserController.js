@@ -2,7 +2,9 @@ const db = require('../models');
 
 class UserController {
     async getAllUsers() {
-        return db.User.findAll();
+        return db.User.findAll({
+            attributes: ['id', 'username', 'avatar']
+        });
     }
 
     async getAllUsersAdmin() {

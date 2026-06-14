@@ -81,7 +81,7 @@ class CommentController {
 
     async createComment(payload, options = {}) {
         const { transaction, parentComment } = options;
-        const { post_id, user_id, content, parent_id } = payload;
+        const { post_id, user_id, content, parent_id, mentioned_user_ids } = payload;
 
         const parsedPostId = this.parsePositiveInt(post_id, 'post_id');
         const parsedUserId = this.parsePositiveInt(user_id, 'user_id');
@@ -152,28 +152,23 @@ class CommentController {
                 }
             }
 
-            // detect mentions like @username
-            const mentionRegex = /@([a-zA-Z0-9_.]{3,100})/g;
-            const mentions = new Set();
-            let m;
-            while ((m = mentionRegex.exec(normalizedContent)) !== null) {
-                mentions.add(m[1]);
-            }
+            // --- Xử lý mention (@nhắc tên) ---
+            // FE gửi mentioned_user_ids (numeric[]) từ react-mentions — chính xác hơn regex.
+            // Chỉ gửi notification nếu array không rỗng.
+            const mentionIds = Array.isArray(mentioned_user_ids)
+                ? mentioned_user_ids.map(Number).filter(Boolean)
+                : [];
 
-            if (mentions.size > 0) {
-                const usernames = Array.from(mentions);
-                const users = await db.User.findAll({ where: { username: usernames } });
-                for (const u of users) {
-                    if (Number(u.id) === Number(parsedUserId)) continue;
-                    await db.Notification.create({
-                        user_id: u.id,
-                        actor_id: parsedUserId,
-                        post_id: parsedPostId,
-                        comment_id: created.id,
-                        url: postUrl,
-                        message: 'Bạn được nhắc tên trong bình luận',
-                    }, transaction ? { transaction } : undefined);
-                }
+            for (const mentionedId of mentionIds) {
+                if (mentionedId === Number(parsedUserId)) continue; // bỏ qua tự nhắc mình
+                await db.Notification.create({
+                    user_id: mentionedId,
+                    actor_id: parsedUserId,
+                    post_id: parsedPostId,
+                    comment_id: created.id,
+                    url: postUrl,
+                    message: 'Bạn được nhắc tên trong bình luận',
+                }, transaction ? { transaction } : undefined);
             }
         } catch (notifErr) {
             console.error('Notification error:', notifErr);

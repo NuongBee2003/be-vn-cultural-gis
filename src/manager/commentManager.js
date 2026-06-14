@@ -16,6 +16,8 @@ class CommentManager {
             user_id: userId,
             content: payload.content,
             parent_id: payload.parent_id,
+            // IDs user được nhắc tên — do FE (react-mentions) xác định chính xác
+            mentioned_user_ids: payload.mentioned_user_ids,
         });
 
         // Fetch lại kèm user info để trả về đầy đủ

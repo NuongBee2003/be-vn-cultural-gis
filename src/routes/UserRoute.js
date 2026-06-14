@@ -19,7 +19,7 @@ const { requireAuth, requireRole } = require("../middleware");
  *         description: Unauthorized
  */
 route.get('/admin', requireAuth, requireRole('admin'), UserManager.getAllAdmin);
-route.get('/', requireAuth, requireRole('user'), UserManager.getAll);
+route.get('/', UserManager.getAll);
 /**
  * @openapi
  * /api/v1/user/me:
