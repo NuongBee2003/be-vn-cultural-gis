@@ -14,6 +14,16 @@ class UserManager {
         }
     }
 
+    async getAllAdmin(req, res) {
+        try {
+            const users = await userController.getAllUsersAdmin();
+            return res.status(200).json({ success: true, data: users });
+        } catch (error) {
+            console.error('ERROR:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+    }
+
     async updateMe(req, res) {
         try {
             const userId = req.userId;
