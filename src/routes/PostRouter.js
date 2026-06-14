@@ -184,6 +184,31 @@ route.post('/:id/like', requireAuth, PostManager.toggleLike);
 
 /**
  * @openapi
+ * /api/v1/post/{id}/likes:
+ *   get:
+ *     tags:
+ *       - Post
+ *     summary: Lấy danh sách những người đã thích bài post
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: ID của bài post
+ *     responses:
+ *       '200':
+ *         description: OK
+ *       '404':
+ *         description: Post not found
+ */
+route.get('/:id/likes', optionalAuth, PostManager.getLikes);
+
+/**
+ * @openapi
  * /api/v1/post/{id}/comments:
  *   get:
  *     tags:

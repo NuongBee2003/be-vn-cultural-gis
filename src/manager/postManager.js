@@ -135,11 +135,48 @@ class PostManager {
 
         let likedYN;
         if (existing) {
-            await existing.destroy();
+            await db.PostLike.destroy({
+                where: { post_id: postId, user_id: userId }
+            });
             likedYN = 'N';
+
+            // Tự động xóa thông báo thích cũ nếu có
+            try {
+                await db.Notification.destroy({
+                    where: {
+                        user_id: post.user_id,
+                        actor_id: userId,
+                        post_id: postId,
+                        comment_id: null,
+                        message: 'đã thích bài viết của bạn'
+                    }
+                });
+            } catch (notiErr) {
+                console.error('Lỗi khi xóa thông báo thích bài viết:', notiErr);
+            }
         } else {
-            await db.PostLike.create({ post_id: postId, user_id: userId });
+            await db.PostLike.create({ 
+                post_id: postId, 
+                user_id: userId,
+                created_at: new Date()
+            });
             likedYN = 'Y';
+
+            // Tự động tạo thông báo mới cho chủ bài viết nếu người thích là người khác
+            if (post.user_id && Number(post.user_id) !== Number(userId)) {
+                try {
+                    await db.Notification.create({
+                        user_id: post.user_id,
+                        actor_id: userId,
+                        post_id: postId,
+                        comment_id: null,
+                        url: `/post/${postId}`,
+                        message: 'đã thích bài viết của bạn'
+                    });
+                } catch (notiErr) {
+                    console.error('Lỗi khi tạo thông báo thích bài viết:', notiErr);
+                }
+            }
         }
 
         const likeCount = await db.PostLike.count({ where: { post_id: postId } });
@@ -148,6 +185,41 @@ class PostManager {
             statusCode: 200,
             message: likedYN === 'Y' ? 'Liked' : 'Unliked',
             data: { post_id: postId, likedYN, likeCount },
+        });
+    });
+
+    getLikes = asyncHandler(async (req, res) => {
+        const postId = postController.parsePositiveInt(req.params.id, 'id');
+
+        // Kiểm tra post tồn tại
+        const post = await db.Post.findByPk(postId);
+        if (!post) {
+            throw new HttpError(404, 'Post not found');
+        }
+
+        const likes = await db.PostLike.findAll({
+            where: { post_id: postId },
+            include: [
+                {
+                    model: db.User,
+                    as: 'user',
+                    attributes: ['id', 'username', 'avatar']
+                }
+            ],
+            order: [['created_at', 'DESC']]
+        });
+
+        // Map kết quả trả về mảng các User đơn giản
+        const users = likes.map(like => ({
+            id: like.user?.id,
+            username: like.user?.username || 'Ẩn danh',
+            avatar: like.user?.avatar || null
+        }));
+
+        return sendSuccess(res, {
+            statusCode: 200,
+            message: 'OK',
+            data: users,
         });
     });
 
