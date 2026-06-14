@@ -5,7 +5,7 @@ const asyncHandler = require('../utils/asyncHandler');
 const HttpError = require('../utils/httpError');
 const { sendSuccess } = require('../utils/apiResponse');
 const redisClient = require('../config/redisClient');
-const { getTileKeysFromBbox } = require('../utils/geoTile');
+const { buildGrid, calcPerCell, runInBatches } = require('../utils/geoHashGrid');
 const db = require('../models');
 
 class LocationManager {
@@ -28,18 +28,102 @@ class LocationManager {
 
     getLocationsByGeo = asyncHandler(async (req, res) => {
         const input = req.body || {};
-        const cacheKey = `locations_geo:${JSON.stringify(input)}`;
+        const { bbox, limit: rawLimit } = input;
 
-        try {
-            const cachedData = await redisClient.get(cacheKey);
-            if (cachedData) {
-                return sendSuccess(res, JSON.parse(cachedData));
-            }
-        } catch (err) {
-            console.error('Redis get error:', err);
+        if (!bbox) {
+            throw new HttpError(400, 'bbox là bắt buộc. Định dạng: minLng,minLat,maxLng,maxLat');
         }
 
-        const locations = await locationController.getLocationsByViewport(input);
+        // Parse bbox
+        const parts = String(bbox).split(',').map((v) => Number(v.trim()));
+        if (parts.length !== 4 || parts.some((v) => Number.isNaN(v))) {
+            throw new HttpError(400, 'bbox phải có đúng 4 số: minLng,minLat,maxLng,maxLat');
+        }
+        const [minLng, minLat, maxLng, maxLat] = parts;
+        
+        if (minLng >= maxLng || minLat >= maxLat) {
+            throw new HttpError(400, 'bbox không hợp lệ: minLng < maxLng và minLat < maxLat');
+        }
+
+        const totalLimit = (rawLimit && Number.isInteger(Number(rawLimit)) && Number(rawLimit) > 0)
+            ? Number(rawLimit)
+            : 50;
+
+        const bounds = { minLng, minLat, maxLng, maxLat };
+
+        // --- Chia lưới ô GeoHash ---
+        const cells = buildGrid(bounds);
+        const perCell = calcPerCell(totalLimit, cells.length);
+
+        // --- Per-cell Redis cache ---
+        let hitCount = 0;
+        const cellDataMap = new Map(); // cellKey → Array<location>
+
+        // 1. Lấy từ cache những ô đã có
+        await Promise.all(
+            cells.map(async (cell) => {
+                try {
+                    const cached = await redisClient.get(cell.cellKey);
+                    if (cached) {
+                        cellDataMap.set(cell.cellKey, JSON.parse(cached));
+                        hitCount++;
+                    }
+                } catch (_) { /* bỏ qua lỗi Redis */ }
+            })
+        );
+
+        // 2. Query DB song song cho các ô chưa cache
+        const missedCells = cells.filter((c) => !cellDataMap.has(c.cellKey));
+
+        if (missedCells.length > 0) {
+            const freshResults = await locationController.getLocationsByGeoHashGrid(missedCells, perCell);
+
+            // Gán kết quả về từng ô (1 location thuộc ô nào thì vào ô đó)
+            // Dùng per-cell bucket để cache riêng
+            const buckets = new Map();
+            for (const cell of missedCells) {
+                buckets.set(cell.cellKey, []);
+            }
+            for (const loc of freshResults) {
+                // Tìm ô chứa location này
+                const ownerCell = missedCells.find(
+                    (c) =>
+                        loc.lat >= c.minLat && loc.lat <= c.maxLat &&
+                        loc.lng >= c.minLng && loc.lng <= c.maxLng
+                );
+                if (ownerCell) {
+                    buckets.get(ownerCell.cellKey).push(loc);
+                }
+            }
+
+            // Lưu cache từng ô + nạp vào cellDataMap
+            await Promise.all(
+                missedCells.map(async (cell) => {
+                    const rows = buckets.get(cell.cellKey) || [];
+                    cellDataMap.set(cell.cellKey, rows);
+                    try {
+                        // Cache 10 phút mỗi ô — reuse khi pan sang vùng lân cận
+                        await redisClient.setEx(cell.cellKey, 600, JSON.stringify(rows));
+                    } catch (_) { /* bỏ qua lỗi Redis */ }
+                })
+            );
+        }
+
+        // 3. Merge tất cả ô, dedup theo id, giới hạn tổng = totalLimit
+        const seen = new Set();
+        const locations = [];
+        for (const cell of cells) {
+            const rows = cellDataMap.get(cell.cellKey) || [];
+            for (const row of rows) {
+                const rowId = row.id ?? row.dataValues?.id;
+                if (rowId !== undefined && !seen.has(rowId)) {
+                    seen.add(rowId);
+                    locations.push(row);
+                    if (locations.length >= totalLimit) break;
+                }
+            }
+            if (locations.length >= totalLimit) break;
+        }
 
         const responseData = {
             statusCode: 200,
@@ -47,17 +131,16 @@ class LocationManager {
             data: locations,
             meta: {
                 count: locations.length,
-                limit: input.limit,
+                limit: totalLimit,
                 bbox: input.bbox,
+                grid: {
+                    cells: cells.length,
+                    perCell,
+                    cacheHits: hitCount,
+                    cacheMisses: missedCells.length,
+                },
             },
         };
-
-        try {
-            // Cache 5 phút cho query chính xác
-            await redisClient.setEx(cacheKey, 300, JSON.stringify(responseData));
-        } catch (err) {
-            console.error('Redis set error:', err);
-        }
 
         return sendSuccess(res, responseData);
     });
