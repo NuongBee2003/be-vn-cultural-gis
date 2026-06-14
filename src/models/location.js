@@ -15,7 +15,6 @@ module.exports = function(sequelize, DataTypes) {
         key: 'id'
       }
     },
-
     address: {
       type: DataTypes.STRING(255),
       allowNull: true
@@ -48,7 +47,6 @@ module.exports = function(sequelize, DataTypes) {
           { name: "place_id" },
         ]
       },
-
     ]
   });
 };

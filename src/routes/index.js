@@ -6,6 +6,10 @@ const LocationRoute = require('./LocationRouter');
 const CategoryRoute = require('./CategoryRouter');
 const SearchRoute = require('./SearchRouter');
 const CommentRoute = require('./CommentRouter');
+const NotificationRoute = require('./NotificationRouter');
+const CuisineRoute = require('./CuisineRouter');
+const CustomRoute = require('./CustomRouter');
+const FolkArtRoute = require('./FolkArtRouter');
 const AuthManager = require('../manager/authManager');
 
 const initRoutes = (app) =>{
@@ -18,5 +22,9 @@ const initRoutes = (app) =>{
     app.use("/api/v1/category", CategoryRoute);
     app.use("/api/v1/search", SearchRoute);
     app.use("/api/v1/comment",CommentRoute);
+    app.use("/api/v1/notification", NotificationRoute);
+    app.use("/api/v1/cuisine", CuisineRoute);
+    app.use("/api/v1/custom", CustomRoute);
+    app.use("/api/v1/folk-art", FolkArtRoute);
 }
 module.exports = initRoutes;

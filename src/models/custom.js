@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('Place', {
+  return sequelize.define('Custom', {
     id: {
       autoIncrement: true,
       type: DataTypes.INTEGER,
@@ -15,13 +15,19 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.TEXT,
       allowNull: true
     },
-    category_id: {
-      type: DataTypes.INTEGER,
+    time_period: {
+      type: DataTypes.STRING(255),
       allowNull: true,
-      references: {
-        model: 'categories',
-        key: 'id'
-      }
+      comment: "Thời gian diễn ra lễ hội\/phong tục"
+    },
+    rituals: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: "Các nghi lễ, hoạt động chính"
+    },
+    image_url: {
+      type: DataTypes.STRING(500),
+      allowNull: true
     },
     created_at: {
       type: DataTypes.DATE(3),
@@ -34,7 +40,7 @@ module.exports = function(sequelize, DataTypes) {
     }
   }, {
     sequelize,
-    tableName: 'places',
+    tableName: 'customs',
     timestamps: false,
     indexes: [
       {
@@ -43,13 +49,6 @@ module.exports = function(sequelize, DataTypes) {
         using: "BTREE",
         fields: [
           { name: "id" },
-        ]
-      },
-      {
-        name: "places_category_id_fkey",
-        using: "BTREE",
-        fields: [
-          { name: "category_id" },
         ]
       },
     ]
