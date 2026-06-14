@@ -1,7 +1,6 @@
 const { Op } = require("sequelize");
 const db = require("../models");
 const HttpError = require("../utils/httpError");
-const { parseViewportQuery } = require("../utils/locationViewport");
 
 const Location = db.Location;
 
@@ -14,37 +13,63 @@ class LocationController {
     return parsed;
   }
 
-  async getLocationsByViewport(query) {
-    const parsed = parseViewportQuery(query);
+  /**
+   * GeoHash Grid Sampling Query
+   * Với mỗi ô trong cells[], chạy query riêng lấy tối đa perCell items.
+   * Kết quả từ nhiều ô được merge + dedup theo id.
+   *
+   * @param {Array<{minLng,minLat,maxLng,maxLat}>} cells - danh sách ô lưới
+   * @param {number} perCell - số item tối đa mỗi ô
+   * @returns {Promise<Array>} mảng location đã dedup
+   */
+  async getLocationsByGeoHashGrid(cells, perCell) {
+    const { runInBatches } = require('../utils/geoHashGrid');
 
-    const { bounds, limit } = parsed;
-
-    const where = {
-      lat: { [Op.between]: [bounds.minLat, bounds.maxLat] },
-      lng: { [Op.between]: [bounds.minLng, bounds.maxLng] },
-    };
-
-    return Location.findAll({
-      attributes: ["id", "lat", "lng", "address", "place_id"],
-      where,
-      include: [
-        {
-          model: db.Place,
-          as: "place",
-          attributes: ["id", "name", "description"],
-          required: true,
+    // Chạy theo batch 4 cells — tránh vượt max_user_connections của DB cloud
+    const cellResults = await runInBatches(
+      cells.map((cell) => () =>
+        Location.findAll({
+          attributes: ['id', 'lat', 'lng', 'address', 'place_id'],
+          where: {
+            lat: { [Op.between]: [cell.minLat, cell.maxLat] },
+            lng: { [Op.between]: [cell.minLng, cell.maxLng] },
+          },
           include: [
             {
-              model: db.Category,
-              as: "category",
-              attributes: ["id", "name", "icon_marker", "color"],
-              required: false,
+              model: db.Place,
+              as: 'place',
+              attributes: ['id', 'name', 'description'],
+              required: true,
+              include: [
+                {
+                  model: db.Category,
+                  as: 'category',
+                  attributes: ['id', 'name', 'icon_marker', 'color'],
+                  required: false,
+                },
+              ],
             },
           ],
-        },
-      ],
-      limit,
-    });
+          limit: perCell,
+          order: [['id', 'ASC']],
+        })
+      ),
+      2  // batch size = 2 (DB cloud max_user_connections = 5, server dùng ~2-3)
+    );
+
+    // Merge tất cả kết quả, dedup theo id
+    const seen = new Set();
+    const merged = [];
+    for (const rows of cellResults) {
+      for (const row of rows) {
+        if (!seen.has(row.id)) {
+          seen.add(row.id);
+          merged.push(row);
+        }
+      }
+    }
+
+    return merged;
   }
 
   async createLocation(payload, options = {}) {
