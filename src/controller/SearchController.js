@@ -313,16 +313,18 @@ class SearchController {
                     as: 'locations',
                     attributes: ['id', 'lat', 'lng', 'address'],
                     required: false,
-                },
-                {
-                    model: db.Asset,
-                    as: 'assets',
-                    attributes: ['id', 'url', 'is_primary'],
-                    required: false,
-                    where: {
-                        post_id: null,
-                        review_id: null,
-                    },
+                    include: [
+                        {
+                            model: db.Asset,
+                            as: 'assets',
+                            attributes: ['id', 'url', 'is_primary'],
+                            required: false,
+                            where: {
+                                post_id: null,
+                                review_id: null,
+                            },
+                        },
+                    ],
                 },
                 {
                     model: db.Category,
@@ -365,16 +367,18 @@ class SearchController {
                         as: 'locations',
                         attributes: ['id', 'lat', 'lng', 'address'],
                         required: false,
-                    },
-                    {
-                        model: db.Asset,
-                        as: 'assets',
-                        attributes: ['id', 'url', 'is_primary'],
-                        required: false,
-                        where: {
-                            post_id: null,
-                            review_id: null,
-                        },
+                        include: [
+                            {
+                                model: db.Asset,
+                                as: 'assets',
+                                attributes: ['id', 'url', 'is_primary'],
+                                required: false,
+                                where: {
+                                    post_id: null,
+                                    review_id: null,
+                                },
+                            },
+                        ],
                     },
                     {
                         model: db.Category,
@@ -391,9 +395,15 @@ class SearchController {
 
         const items = allRows.map((place) => {
             const placeJson = place.toJSON();
+            const allAssets = [];
+            for (const loc of placeJson.locations || []) {
+                if (Array.isArray(loc.assets)) {
+                    allAssets.push(...loc.assets);
+                }
+            }
             const primaryAsset =
-                (placeJson.assets || []).find((a) => a.is_primary) ||
-                (placeJson.assets || [])[0] ||
+                allAssets.find((a) => a.is_primary) ||
+                allAssets[0] ||
                 null;
 
             return {

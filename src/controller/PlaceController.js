@@ -50,21 +50,21 @@ class PlaceController {
                     required: false,
                 },
                 {
-                    model: db.Asset,
-                    as: 'assets',
-                    attributes: ['id', 'url', 'is_primary'],
-                    required: false,
-                    where: {
-                        post_id: null,
-                        review_id: null,
-                    },
-                },
-                {
                     model: db.Location,
                     as: 'locations',
                     attributes: ['id', 'lat', 'lng', 'address'],
                     required: false,
                     include: [
+                        {
+                            model: db.Asset,
+                            as: 'assets',
+                            attributes: ['id', 'url', 'is_primary'],
+                            required: false,
+                            where: {
+                                post_id: null,
+                                review_id: null,
+                            },
+                        },
                         {
                             model: db.Review,
                             as: 'reviews',
@@ -110,16 +110,21 @@ class PlaceController {
             throw err;
         }
 
+        const placeJson = place.toJSON();
         const reviews = [];
-        for (const location of place.locations || []) {
+        const assets = [];
+        for (const location of placeJson.locations || []) {
             if (Array.isArray(location.reviews)) {
                 reviews.push(...location.reviews);
+            }
+            if (Array.isArray(location.assets)) {
+                assets.push(...location.assets);
             }
         }
 
         const rating_avg = this.calculateRatingAvg(reviews);
 
-        return { ...place.toJSON(), rating_avg };
+        return { ...placeJson, assets, rating_avg };
     }
 
     async getPlaceWithLocations(id) {

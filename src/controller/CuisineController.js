@@ -25,15 +25,17 @@ class CuisineController {
                             include: [
                                 {
                                     model: db.Location,
-                                    as: 'locations'
+                                    as: 'locations',
+                                    include: [
+                                        {
+                                            model: db.Asset,
+                                            as: 'assets'
+                                        }
+                                    ]
                                 },
                                 {
                                     model: db.Category,
                                     as: 'category'
-                                },
-                                {
-                                    model: db.Asset,
-                                    as: 'assets'
                                 }
                             ]
                         }
@@ -57,15 +59,17 @@ class CuisineController {
                             include: [
                                 {
                                     model: db.Location,
-                                    as: 'locations'
+                                    as: 'locations',
+                                    include: [
+                                        {
+                                            model: db.Asset,
+                                            as: 'assets'
+                                        }
+                                    ]
                                 },
                                 {
                                     model: db.Category,
                                     as: 'category'
-                                },
-                                {
-                                    model: db.Asset,
-                                    as: 'assets'
                                 }
                             ]
                         }
