@@ -213,7 +213,7 @@ class LocationManager {
             const location = await locationController.createLocation({ lat, lng, address, place_id: placeId }, opts);
 
             // 3. Lưu Assets nếu có images
-            await assetController.createAssets(images || [], { place_id: placeId }, opts);
+            await assetController.createAssets(images || [], { location_id: location.id }, opts);
 
             return location;
         });
@@ -268,7 +268,7 @@ class LocationManager {
 
             // 3. Thay thế Assets nếu có images
             if (images !== undefined) {
-                await assetController.replaceAssets(images, { place_id: location.place_id }, opts);
+                await assetController.replaceAssets(images, { location_id: location.id }, opts);
             }
 
             return location;
@@ -336,13 +336,13 @@ getALocationsByCategory = asyncHandler(async (req, res) => {
             throw err;
         }
     });
-    getAssetsByPlaceId = asyncHandler(async (req, res) => {
-        const placeId = Number(req.params.placeId);
-        if (!Number.isInteger(placeId) || placeId <= 0) {
-            throw new HttpError(400, 'placeId phải là một số nguyên dương');
+    getAssetsByLocationId = asyncHandler(async (req, res) => {
+        const locationId = Number(req.params.locationId);
+        if (!Number.isInteger(locationId) || locationId <= 0) {
+            throw new HttpError(400, 'locationId phải là một số nguyên dương');
         }
 
-        const assets = await assetController.getAssets({ place_id: placeId });
+        const assets = await assetController.getAssets({ location_id: locationId });
         
         return sendSuccess(res, {
             statusCode: 200,
@@ -350,7 +350,7 @@ getALocationsByCategory = asyncHandler(async (req, res) => {
             data: assets,
             meta: {
                 count: assets.length,
-                place_id: placeId,
+                location_id: locationId,
             },
         });
     });

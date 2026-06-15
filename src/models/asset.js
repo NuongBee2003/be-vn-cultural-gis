@@ -16,11 +16,11 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       defaultValue: 0
     },
-    place_id: {
+    location_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: 'places',
+        model: 'locations',
         key: 'id'
       }
     },
@@ -54,10 +54,10 @@ module.exports = function(sequelize, DataTypes) {
         ]
       },
       {
-        name: "assets_place_id_fkey",
+        name: "fk_assets_locations",
         using: "BTREE",
         fields: [
-          { name: "place_id" },
+          { name: "location_id" },
         ]
       },
       {

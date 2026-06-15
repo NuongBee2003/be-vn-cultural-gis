@@ -3,17 +3,17 @@ const db = require('../models');
 const Asset = db.Asset;
 
 // Các owner field hợp lệ của bảng assets
-const VALID_OWNER_FIELDS = ['place_id', 'post_id', 'review_id'];
+const VALID_OWNER_FIELDS = ['location_id', 'post_id', 'review_id'];
 
 class AssetController {
     /**
      * Thêm nhiều ảnh. images là mảng string URL.
-     * owner là object chứa đúng 1 trong các key: { place_id }, { post_id }, { review_id }
+     * owner là object chứa đúng 1 trong các key: { location_id }, { post_id }, { review_id }
      * Các field còn lại mặc định null trong DB.
      * Ảnh đầu tiên sẽ được đánh dấu is_primary = 1.
      *
      * @example
-     * createAssets(["url1", "url2"], { place_id: 5 }, opts)
+     * createAssets(["url1", "url2"], { location_id: 5 }, opts)
      * createAssets(["url1"], { post_id: 12 }, opts)
      * createAssets(["url1"], { review_id: 8 }, opts)
      */
@@ -24,7 +24,7 @@ class AssetController {
         const records = images.map((url, index) => ({
             url,
             is_primary: index === 0 ? 1 : 0,
-            place_id: owner.place_id ?? null,
+            location_id: owner.location_id ?? null,
             post_id: owner.post_id ?? null,
             review_id: owner.review_id ?? null,
         }));
@@ -35,13 +35,13 @@ class AssetController {
     /**
      * Xóa ảnh theo owner field.
      * @example
-     * deleteAssets({ place_id: 5 }, opts)
+     * deleteAssets({ location_id: 5 }, opts)
      * deleteAssets({ post_id: 12 }, opts)
      */
     async deleteAssets(owner, options = {}) {
         const { transaction } = options;
         const where = {
-            place_id: owner.place_id ?? null,
+            location_id: owner.location_id ?? null,
             post_id: owner.post_id ?? null,
             review_id: owner.review_id ?? null,
         };
@@ -67,7 +67,7 @@ class AssetController {
         return Asset.findAll({
             attributes: ['id', 'url', 'is_primary'],
             where: {
-                place_id: owner.place_id ?? null,
+                location_id: owner.location_id ?? null,
                 post_id: owner.post_id ?? null,
                 review_id: owner.review_id ?? null,
             },

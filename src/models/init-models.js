@@ -58,8 +58,8 @@ function initModels(sequelize) {
   Location.hasMany(Post, { as: "posts", foreignKey: "location_id"});
   Review.belongsTo(Location, { as: "location", foreignKey: "location_id"});
   Location.hasMany(Review, { as: "reviews", foreignKey: "location_id"});
-  Asset.belongsTo(Place, { as: "place", foreignKey: "place_id"});
-  Place.hasMany(Asset, { as: "assets", foreignKey: "place_id"});
+  Asset.belongsTo(Location, { as: "location", foreignKey: "location_id"});
+  Location.hasMany(Asset, { as: "assets", foreignKey: "location_id"});
   CuisinePlace.belongsTo(Place, { as: "place", foreignKey: "place_id"});
   Place.hasMany(CuisinePlace, { as: "cuisine_places", foreignKey: "place_id"});
   Location.belongsTo(Place, { as: "place", foreignKey: "place_id"});
