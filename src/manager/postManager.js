@@ -265,6 +265,23 @@ class PostManager {
         const updated = await postController.updatePost(post, { status: statusVal }, req.user || {});
         const payload = updated.toJSON ? updated.toJSON() : updated;
 
+        if (updated.user_id) {
+            try {
+                await db.Notification.create({
+                    user_id: updated.user_id,
+                    actor_id: req.userId,
+                    post_id: postId,
+                    comment_id: null,
+                    url: `/post/${postId}`,
+                    message: statusVal === 'accepted'
+                        ? `Bài viết "${updated.title}" của bạn đã được duyệt`
+                        : `Bài viết "${updated.title}" của bạn đã bị từ chối`
+                });
+            } catch (notiErr) {
+                console.error('Lỗi khi tạo thông báo duyệt bài viết:', notiErr);
+            }
+        }
+
         return sendSuccess(res, {
             statusCode: 200,
             message: statusVal === 'accepted' ? 'Post approved successfully' : 'Post rejected successfully',

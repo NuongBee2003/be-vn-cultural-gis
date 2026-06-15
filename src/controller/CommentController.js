@@ -126,35 +126,9 @@ class CommentController {
 
         try {
             const postUrl = `/post/${parsedPostId}`;
+            const notifiedUserIds = new Set();
 
-            if (post.user_id && Number(post.user_id) !== Number(parsedUserId)) {
-                await db.Notification.create({
-                    user_id: post.user_id,
-                    actor_id: parsedUserId,
-                    post_id: parsedPostId,
-                    comment_id: created.id,
-                    url: postUrl,
-                    message: 'Đã nhắc đến bạn trong bình luận',
-                }, transaction ? { transaction } : undefined);
-            }
-
-            if (parentId) {
-                const parent = parentComment || (await this.getCommentById(parentId));
-                if (parent && Number(parent.user_id) !== Number(parsedUserId)) {
-                    await db.Notification.create({
-                        user_id: parent.user_id,
-                        actor_id: parsedUserId,
-                        post_id: parsedPostId,
-                        comment_id: created.id,
-                        url: postUrl,
-                        message: 'Có người trả lời bình luận của bạn',
-                    }, transaction ? { transaction } : undefined);
-                }
-            }
-
-            // --- Xử lý mention (@nhắc tên) ---
-            // FE gửi mentioned_user_ids (numeric[]) từ react-mentions — chính xác hơn regex.
-            // Chỉ gửi notification nếu array không rỗng.
+            // 1. --- Xử lý mention (@nhắc tên) --- (Ưu tiên cao nhất)
             const mentionIds = Array.isArray(mentioned_user_ids)
                 ? mentioned_user_ids.map(Number).filter(Boolean)
                 : [];
@@ -169,6 +143,41 @@ class CommentController {
                     url: postUrl,
                     message: 'Bạn được nhắc tên trong bình luận',
                 }, transaction ? { transaction } : undefined);
+                notifiedUserIds.add(mentionedId);
+            }
+
+            if (parentId) {
+                const parent = parentComment || (await this.getCommentById(parentId));
+                if (parent && Number(parent.user_id) !== Number(parsedUserId)) {
+                    const parentUserId = Number(parent.user_id);
+                    if (!notifiedUserIds.has(parentUserId)) {
+                        await db.Notification.create({
+                            user_id: parentUserId,
+                            actor_id: parsedUserId,
+                            post_id: parsedPostId,
+                            comment_id: created.id,
+                            url: postUrl,
+                            message: 'Có người trả lời bình luận của bạn',
+                        }, transaction ? { transaction } : undefined);
+                        notifiedUserIds.add(parentUserId);
+                    }
+                }
+            }
+
+            // 3. --- Xử lý bình luận vào bài viết của người khác --- (Ưu tiên thấp nhất)
+            if (post.user_id && Number(post.user_id) !== Number(parsedUserId)) {
+                const postOwnerId = Number(post.user_id);
+                if (!notifiedUserIds.has(postOwnerId)) {
+                    await db.Notification.create({
+                        user_id: postOwnerId,
+                        actor_id: parsedUserId,
+                        post_id: parsedPostId,
+                        comment_id: created.id,
+                        url: postUrl,
+                        message: 'Đã bình luận vào bài viết của bạn',
+                    }, transaction ? { transaction } : undefined);
+                    notifiedUserIds.add(postOwnerId);
+                }
             }
         } catch (notifErr) {
             console.error('Notification error:', notifErr);

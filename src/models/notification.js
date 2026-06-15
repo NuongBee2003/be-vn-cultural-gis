@@ -61,6 +61,37 @@ module.exports = function(sequelize, DataTypes) {
     sequelize,
     tableName: 'notifications',
     timestamps: false,
+    hooks: {
+      afterCreate: async (notification, options) => {
+        try {
+          const { sendNotificationToUser } = require('../services/websocket');
+          const fullNotification = await sequelize.models.Notification.findByPk(notification.id, {
+            include: [
+              {
+                model: sequelize.models.User,
+                as: 'actor',
+                attributes: ['id', 'username', 'avatar']
+              },
+              {
+                model: sequelize.models.Post,
+                as: 'post',
+                attributes: ['id', 'title']
+              },
+              {
+                model: sequelize.models.Comment,
+                as: 'comment',
+                attributes: ['id', 'content']
+              }
+            ]
+          });
+          if (fullNotification) {
+            sendNotificationToUser(fullNotification.user_id, fullNotification);
+          }
+        } catch (err) {
+          console.error('Error in Notification afterCreate hook:', err);
+        }
+      }
+    },
     indexes: [
       {
         name: "PRIMARY",
