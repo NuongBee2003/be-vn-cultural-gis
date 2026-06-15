@@ -126,7 +126,7 @@ class PostController {
         });
     }
 
-    async getAllPosts(user) {
+    async getAllPosts(user, queryParams = {}) {
         const currentUserId = user ? Number(user.userId || user.id) : null;
         const whereClause = {};
 
@@ -136,6 +136,30 @@ class PostController {
             orConditions.push({ user_id: currentUserId });
         }
         whereClause[db.Sequelize.Op.or] = orConditions;
+
+        // Lọc theo ngày bắt đầu và kết thúc
+        if (queryParams.date_from || queryParams.date_to) {
+            const dateFilter = {};
+            let hasFilter = false;
+            if (queryParams.date_from) {
+                const fromDate = new Date(queryParams.date_from);
+                if (!isNaN(fromDate.getTime())) {
+                    dateFilter[db.Sequelize.Op.gte] = fromDate;
+                    hasFilter = true;
+                }
+            }
+            if (queryParams.date_to) {
+                const toDate = new Date(queryParams.date_to);
+                if (!isNaN(toDate.getTime())) {
+                    toDate.setHours(23, 59, 59, 999);
+                    dateFilter[db.Sequelize.Op.lte] = toDate;
+                    hasFilter = true;
+                }
+            }
+            if (hasFilter) {
+                whereClause.created_at = dateFilter;
+            }
+        }
 
         const posts = await Post.findAll({
             where: whereClause,

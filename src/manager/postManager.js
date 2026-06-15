@@ -6,7 +6,7 @@ const db = require('../models');
 
 class PostManager {
     getAll = asyncHandler(async (req, res) => {
-        const posts = await postController.getAllPosts(req.user || {});
+        const posts = await postController.getAllPosts(req.user || {}, req.query || {});
 
         return sendSuccess(res, {
             statusCode: 200,

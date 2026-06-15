@@ -26,6 +26,14 @@ class CuisineController {
                                 {
                                     model: db.Location,
                                     as: 'locations'
+                                },
+                                {
+                                    model: db.Category,
+                                    as: 'category'
+                                },
+                                {
+                                    model: db.Asset,
+                                    as: 'assets'
                                 }
                             ]
                         }
@@ -50,6 +58,14 @@ class CuisineController {
                                 {
                                     model: db.Location,
                                     as: 'locations'
+                                },
+                                {
+                                    model: db.Category,
+                                    as: 'category'
+                                },
+                                {
+                                    model: db.Asset,
+                                    as: 'assets'
                                 }
                             ]
                         }
