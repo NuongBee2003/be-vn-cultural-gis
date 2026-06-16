@@ -51,6 +51,18 @@ class CategoryController {
             err.statusCode = 404;
             throw err;
         }
+
+        // Kiểm tra xem có địa điểm nào thuộc danh mục này không
+        const associatedPlacesCount = await db.Place.count({
+            where: { category_id: categoryId }
+        });
+
+        if (associatedPlacesCount > 0) {
+            const err = new Error('Không thể xóa danh mục này vì đang có địa điểm thuộc danh mục');
+            err.statusCode = 400;
+            throw err;
+        }
+
         await category.destroy();
         return true;
     }

@@ -1,15 +1,35 @@
 const placeController = require('../controller/PlaceController');
 const locationController = require('../controller/LocationController');
 const transactionController = require('../controller/TransactionController');
+const assetController = require('../controller/AssetController');
 const asyncHandler = require('../utils/asyncHandler');
 const HttpError = require('../utils/httpError');
 const { sendSuccess } = require('../utils/apiResponse');
+const db = require('../models');
 
 class PlaceManager {
     async getAllPlaces(req, res) {
         try {
-            const places = await placeController.getAllPlaces();
-            return res.status(200).json(places);
+            const page = Number(req.query.page) || 1;
+            const limit = Number(req.query.limit) || 20;
+            const categoryId = req.query.categoryId ? Number(req.query.categoryId) : null;
+            const query = req.query.query || '';
+
+            const result = await placeController.getAllPlacesPaginated({ page, limit, categoryId, query });
+            const totalPages = Math.ceil(result.count / result.limit);
+
+            return sendSuccess(res, {
+                statusCode: 200,
+                message: 'OK',
+                data: result.rows,
+                meta: {
+                    total: result.count,
+                    count: result.rows.length,
+                    page: result.page,
+                    limit: result.limit,
+                    totalPages: totalPages,
+                },
+            });
         } catch (error) {
             // eslint-disable-next-line no-console
             console.log('ERROR: ' + error);
@@ -36,34 +56,35 @@ class PlaceManager {
         try {
             const { locations } = req.body || {};
 
+            if (!locations || !Array.isArray(locations) || locations.length === 0) {
+                const err = new Error('Địa điểm phải có ít nhất 1 chi nhánh');
+                err.statusCode = 400;
+                throw err;
+            }
+
             let transaction;
             try {
                 transaction = await transactionController.begin();
 
-                const createdPlace = await 
-                placeController.createPlace(req.body, { transaction });
+                const createdPlace = await placeController.createPlace(req.body, { transaction });
 
-                if (locations !== undefined) {
-                    if (!Array.isArray(locations)) {
-                        const err = new Error('locations must be an array');
-                        err.statusCode = 400;
-                        throw err;
-                    }
+                for (const loc of locations) {
+                    const createdLoc = await locationController.createLocation(
+                        {
+                            ...loc,
+                            place_id: createdPlace.id,
+                        },
+                        { transaction }
+                    );
 
-                    for (const loc of locations) {
-                        await locationController.createLocation(
-                            {
-                                ...loc,
-                                place_id: createdPlace.id,
-                            },
-                            { transaction }
-                        );
+                    if (loc.images && loc.images.length > 0) {
+                        await assetController.createAssets(loc.images, { location_id: createdLoc.id }, { transaction });
                     }
                 }
 
                 await transactionController.commit(transaction);
 
-                const placeWithLocations = await placeController.getPlaceWithLocations(createdPlace.id);
+                const placeWithLocations = await placeController.getPlaceDetail(createdPlace.id);
                 return res.status(201).json(placeWithLocations);
             } catch (err) {
                 if (transaction) {
@@ -89,8 +110,87 @@ class PlaceManager {
 
     async update(req, res) {
         try {
-            const place = await placeController.updatePlace(req.params.id, req.body);
-            return res.status(200).json(place);
+            const { locations } = req.body || {};
+            const placeId = req.params.id;
+
+            let transaction;
+            try {
+                transaction = await transactionController.begin();
+
+                // 1. Cập nhật Place
+                await placeController.updatePlace(placeId, req.body, { transaction });
+
+                // 2. Cập nhật vi sai chi nhánh
+                if (locations !== undefined) {
+                    if (!Array.isArray(locations)) {
+                        const err = new Error('locations must be an array');
+                        err.statusCode = 400;
+                        throw err;
+                    }
+
+                    if (locations.length === 0) {
+                        const err = new Error('Địa điểm phải có ít nhất 1 chi nhánh');
+                        err.statusCode = 400;
+                        throw err;
+                    }
+
+                    const existingLocations = await db.Location.findAll({
+                        where: { place_id: placeId },
+                        transaction
+                    });
+
+                    const existingIds = existingLocations.map(l => l.id);
+                    const incomingIds = locations.filter(l => l.id).map(l => Number(l.id));
+
+                    // Xóa các chi nhánh bị bỏ
+                    const toDelete = existingIds.filter(id => !incomingIds.includes(id));
+                    if (toDelete.length > 0) {
+                        await db.Location.destroy({
+                            where: { id: toDelete },
+                            transaction
+                        });
+                    }
+
+                    // Thêm mới hoặc cập nhật
+                    for (const loc of locations) {
+                        if (loc.id) {
+                            const existingLoc = existingLocations.find(l => l.id === Number(loc.id));
+                            if (existingLoc) {
+                                await locationController.updateLocation(existingLoc, loc, { transaction });
+                                if (loc.images !== undefined) {
+                                    await assetController.replaceAssets(loc.images, { location_id: existingLoc.id }, { transaction });
+                                }
+                            }
+                        } else {
+                            const newLoc = await locationController.createLocation(
+                                {
+                                    ...loc,
+                                    place_id: placeId,
+                                },
+                                { transaction }
+                            );
+                            if (loc.images && loc.images.length > 0) {
+                                await assetController.createAssets(loc.images, { location_id: newLoc.id }, { transaction });
+                            }
+                        }
+                    }
+                }
+
+                await transactionController.commit(transaction);
+
+                const updatedPlace = await placeController.getPlaceDetail(placeId);
+                return res.status(200).json(updatedPlace);
+            } catch (err) {
+                if (transaction) {
+                    try {
+                        await transactionController.rollback(transaction);
+                    } catch (rollbackErr) {
+                        // eslint-disable-next-line no-console
+                        console.log('ERROR: ' + rollbackErr);
+                    }
+                }
+                throw err;
+            }
         } catch (error) {
             // eslint-disable-next-line no-console
             console.log('ERROR: ' + error);

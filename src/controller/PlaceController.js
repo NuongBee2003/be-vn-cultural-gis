@@ -15,6 +15,68 @@ class PlaceController {
         return db.Place.findAll();
     }
 
+    async getAllPlacesPaginated({ page = 1, limit = 20, categoryId = null, query = '' }) {
+        const parsedPage = this.parsePositiveInt(page, 'page');
+        const parsedLimit = this.parsePositiveInt(limit, 'limit');
+        const offset = (parsedPage - 1) * parsedLimit;
+
+        const where = {};
+        if (categoryId) {
+            where.category_id = this.parsePositiveInt(categoryId, 'categoryId');
+        }
+
+        if (query && query.trim()) {
+            const { Op } = require('sequelize');
+            const likePattern = `%${query.trim()}%`;
+            where[Op.or] = [
+                { name: { [Op.like]: likePattern } },
+                { description: { [Op.like]: likePattern } }
+            ];
+        }
+
+        const { count, rows } = await db.Place.findAndCountAll({
+            where,
+            attributes: ['id', 'name', 'description', 'category_id', 'created_at', 'updated_at'],
+            include: [
+                {
+                    model: db.Category,
+                    as: 'category',
+                    attributes: ['id', 'name', 'icon_marker', 'color'],
+                    required: false,
+                },
+                {
+                    model: db.Location,
+                    as: 'locations',
+                    attributes: ['id', 'lat', 'lng', 'address'],
+                    required: false,
+                    include: [
+                        {
+                            model: db.Asset,
+                            as: 'assets',
+                            attributes: ['id', 'url', 'is_primary'],
+                            required: false,
+                            where: {
+                                post_id: null,
+                                review_id: null,
+                            },
+                        }
+                    ]
+                },
+            ],
+            limit: parsedLimit,
+            offset,
+            order: [['id', 'DESC']],
+            distinct: true,
+        });
+
+        return {
+            rows,
+            count,
+            page: parsedPage,
+            limit: parsedLimit,
+        };
+    }
+
     calculateRatingAvg(reviews = []) {
         if (!Array.isArray(reviews) || reviews.length === 0) {
             return null;
@@ -167,10 +229,11 @@ class PlaceController {
         );
     }
 
-    async updatePlace(id, payload) {
+    async updatePlace(id, payload, options = {}) {
+        const { transaction } = options;
         const placeId = this.parsePositiveInt(id, 'id');
 
-        const place = await db.Place.findByPk(placeId);
+        const place = await db.Place.findByPk(placeId, transaction ? { transaction } : undefined);
         if (!place) {
             const err = new Error('Place not found');
             err.statusCode = 404;
@@ -186,7 +249,7 @@ class PlaceController {
 
         updates.updated_at = db.sequelize.literal('CURRENT_TIMESTAMP(3)');
 
-        await place.update(updates);
+        await place.update(updates, transaction ? { transaction } : undefined);
         return place;
     }
 
