@@ -277,16 +277,31 @@ class PlaceController {
         const rawComment = payload?.comment;
         const comment = rawComment === undefined || rawComment === null ? null : String(rawComment).trim() || null;
 
-        const location = await db.Location.findOne({
-            where: { place_id: placeId },
-            attributes: ['id', 'lat', 'lng', 'address', 'place_id'],
-            order: [['id', 'ASC']],
-        });
+        // Cho phép truyền location_id để tạo review cho chi nhánh cụ thể
+        const targetLocationId = payload?.location_id || payload?.locationId;
+        let location;
 
-        if (!location) {
-            const err = new Error('No location found for this place');
-            err.statusCode = 400;
-            throw err;
+        if (targetLocationId) {
+            location = await db.Location.findOne({
+                where: { id: targetLocationId, place_id: placeId },
+                attributes: ['id', 'lat', 'lng', 'address', 'place_id'],
+            });
+            if (!location) {
+                const err = new Error('Location not found or does not belong to this place');
+                err.statusCode = 400;
+                throw err;
+            }
+        } else {
+            location = await db.Location.findOne({
+                where: { place_id: placeId },
+                attributes: ['id', 'lat', 'lng', 'address', 'place_id'],
+                order: [['id', 'ASC']],
+            });
+            if (!location) {
+                const err = new Error('No location found for this place');
+                err.statusCode = 400;
+                throw err;
+            }
         }
 
         const review = await db.Review.create({
