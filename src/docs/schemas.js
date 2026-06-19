@@ -432,4 +432,336 @@ module.exports = {
 			avatar: { type: 'string', nullable: true, example: 'https://example.com/avatar.png' },
 		},
 	},
+
+	// ── Exhibition schemas ───────────────────────────────────────────────────
+
+	ExhibitionCreateRequest: {
+		type: 'object',
+		required: ['title', 'description', 'image_url', 'category', 'province'],
+		properties: {
+			title: { type: 'string', example: 'Đêm phố cổ Hội An' },
+			description: { type: 'string', example: 'Không gian đêm phố cổ Hội An hiện lên lung linh...' },
+			image_url: { type: 'string', example: 'https://example.com/images/hoian.jpg' },
+			category: { type: 'string', enum: ['place', 'food', 'festival'], example: 'place' },
+			style_tag: { type: 'string', nullable: true, example: 'Phố Cổ Hội An' },
+			place_name: { type: 'string', nullable: true, example: 'Phố cổ Hội An' },
+			province: { type: 'string', example: 'Quảng Nam' },
+			status: { type: 'string', enum: ['pending', 'accepted', 'rejected'], example: 'pending', description: 'Admin có thể tự chọn trạng thái khi tạo, User mặc định là pending' }
+		},
+	},
+
+	ExhibitionUpdateRequest: {
+		type: 'object',
+		properties: {
+			title: { type: 'string', example: 'Đêm phố cổ Hội An (Đã chỉnh sửa)' },
+			description: { type: 'string', example: 'Mô tả mới của tác phẩm...' },
+			image_url: { type: 'string', example: 'https://example.com/images/hoian_new.jpg' },
+			category: { type: 'string', enum: ['place', 'food', 'festival'], example: 'place' },
+			style_tag: { type: 'string', nullable: true, example: 'Phố Cổ' },
+			place_name: { type: 'string', nullable: true, example: 'Hội An' },
+			province: { type: 'string', example: 'Quảng Nam' },
+			status: { type: 'string', enum: ['pending', 'accepted', 'rejected'], example: 'accepted', description: 'Chỉ Admin mới có quyền cập nhật trạng thái trực tiếp' }
+		},
+	},
+
+	ExhibitionReviewRequest: {
+		type: 'object',
+		required: ['status'],
+		properties: {
+			status: { type: 'string', enum: ['accepted', 'rejected'], example: 'accepted', description: 'Trạng thái phê duyệt' }
+		},
+	},
+
+	ExhibitionLikeRequest: {
+		type: 'object',
+		required: ['action'],
+		properties: {
+			action: { type: 'string', enum: ['like', 'unlike'], example: 'like', description: 'Hành động thích hoặc bỏ thích' }
+		},
+	},
+
+	ExhibitionData: {
+		type: 'object',
+		properties: {
+			id: { type: 'integer', example: 1 },
+			user_id: { type: 'integer', example: 5 },
+			title: { type: 'string', example: 'Đêm phố cổ Hội An' },
+			description: { type: 'string', example: 'Không gian đêm phố cổ Hội An...' },
+			image_url: { type: 'string', example: 'https://example.com/images/hoian.jpg' },
+			category: { type: 'string', enum: ['place', 'food', 'festival'], example: 'place' },
+			style_tag: { type: 'string', nullable: true, example: 'Phố Cổ Hội An' },
+			place_name: { type: 'string', nullable: true, example: 'Phố cổ Hội An' },
+			province: { type: 'string', example: 'Quảng Nam' },
+			likes: { type: 'integer', example: 42 },
+			status: { type: 'string', enum: ['pending', 'accepted', 'rejected'], example: 'accepted' },
+			created_at: { type: 'string', format: 'date-time', example: '2026-06-19T15:45:00.000Z' },
+			updated_at: { type: 'string', format: 'date-time', example: '2026-06-19T15:45:00.000Z' },
+			user: { $ref: '#/components/schemas/UserBrief', nullable: true }
+		},
+	},
+
+	ExhibitionResponse: {
+		type: 'object',
+		required: ['success', 'message', 'data'],
+		properties: {
+			success: { type: 'boolean', example: true },
+			message: { type: 'string', example: 'OK' },
+			data: { $ref: '#/components/schemas/ExhibitionData' },
+		},
+	},
+
+	ExhibitionListResponse: {
+		type: 'object',
+		required: ['success', 'message', 'data'],
+		properties: {
+			success: { type: 'boolean', example: true },
+			message: { type: 'string', example: 'OK' },
+			data: {
+				type: 'array',
+				items: { $ref: '#/components/schemas/ExhibitionData' }
+			},
+		},
+	},
+
+	// ── Cuisine schemas ──────────────────────────────────────────────────────
+
+	CuisineCreateRequest: {
+		type: 'object',
+		required: ['name'],
+		properties: {
+			name: { type: 'string', example: 'Phở bò Hà Nội' },
+			description: { type: 'string', example: 'Món ăn truyền thống của người Hà Nội...' },
+			origin: { type: 'string', example: 'Hà Nội' },
+			ingredients: { type: 'string', example: 'Bánh phở, thịt bò, xương ống bò, thảo quả, gừng...' },
+			image_url: { type: 'string', example: 'https://example.com/images/pho.jpg' }
+		},
+	},
+
+	CuisineUpdateRequest: {
+		type: 'object',
+		properties: {
+			name: { type: 'string', example: 'Phở bò chín' },
+			description: { type: 'string', example: 'Nước dùng trong, thơm ngọt...' },
+			origin: { type: 'string', example: 'Hà Nội' },
+			ingredients: { type: 'string', example: 'Bánh phở, thịt nạm bò, nước dùng...' },
+			image_url: { type: 'string', example: 'https://example.com/images/pho_bo.jpg' }
+		},
+	},
+
+	CuisinePlaceCreateRequest: {
+		type: 'object',
+		required: ['place_id'],
+		properties: {
+			place_id: { type: 'integer', example: 12 },
+			notes: { type: 'string', example: 'Bán buổi sáng, nước dùng rất ngon' }
+		},
+	},
+
+	CuisineData: {
+		type: 'object',
+		properties: {
+			id: { type: 'integer', example: 1 },
+			name: { type: 'string', example: 'Phở bò' },
+			description: { type: 'string', example: 'Món ăn truyền thống...' },
+			origin: { type: 'string', example: 'Hà Nội' },
+			ingredients: { type: 'string', example: 'Bánh phở, thịt bò...' },
+			image_url: { type: 'string', example: 'https://example.com/images/pho.jpg' },
+			created_at: { type: 'string', format: 'date-time', example: '2026-06-19T15:45:00.000Z' },
+			updated_at: { type: 'string', format: 'date-time', example: '2026-06-19T15:45:00.000Z' }
+		},
+	},
+
+	CuisineResponse: {
+		type: 'object',
+		required: ['success', 'message', 'data'],
+		properties: {
+			success: { type: 'boolean', example: true },
+			message: { type: 'string', example: 'OK' },
+			data: { $ref: '#/components/schemas/CuisineData' }
+		},
+	},
+
+	CuisineListResponse: {
+		type: 'object',
+		required: ['success', 'message', 'data'],
+		properties: {
+			success: { type: 'boolean', example: true },
+			message: { type: 'string', example: 'OK' },
+			data: {
+				type: 'array',
+				items: { $ref: '#/components/schemas/CuisineData' }
+			},
+		},
+	},
+
+	// ── FolkArt schemas ──────────────────────────────────────────────────────
+
+	FolkArtCreateRequest: {
+		type: 'object',
+		required: ['name'],
+		properties: {
+			name: { type: 'string', example: 'Đờn ca tài tử Nam Bộ' },
+			description: { type: 'string', example: 'Nghệ thuật âm nhạc dân gian đặc trưng...' },
+			history: { type: 'string', example: 'Ra đời vào cuối thế kỷ 19...' },
+			instruments: { type: 'string', example: 'Đờn kìm, đờn tranh, đờn bầu...' },
+			image_url: { type: 'string', example: 'https://example.com/images/doncataitu.jpg' }
+		},
+	},
+
+	FolkArtUpdateRequest: {
+		type: 'object',
+		properties: {
+			name: { type: 'string', example: 'Đờn ca tài tử' },
+			description: { type: 'string', example: 'Nghệ thuật đàn hát bình dân...' },
+			history: { type: 'string', example: 'Di sản phi vật thể nhân loại...' },
+			instruments: { type: 'string', example: 'Đờn kìm, đờn tranh, sáo...' },
+			image_url: { type: 'string', example: 'https://example.com/images/don_ca.jpg' }
+		},
+	},
+
+	FolkArtData: {
+		type: 'object',
+		properties: {
+			id: { type: 'integer', example: 1 },
+			name: { type: 'string', example: 'Đờn ca tài tử' },
+			description: { type: 'string', example: 'Nghệ thuật đặc trưng...' },
+			history: { type: 'string', example: 'Lịch sử hình thành...' },
+			instruments: { type: 'string', example: 'Đờn kìm...' },
+			image_url: { type: 'string', example: 'https://example.com/images/don_ca.jpg' },
+			created_at: { type: 'string', format: 'date-time', example: '2026-06-19T15:45:00.000Z' },
+			updated_at: { type: 'string', format: 'date-time', example: '2026-06-19T15:45:00.000Z' }
+		},
+	},
+
+	FolkArtResponse: {
+		type: 'object',
+		required: ['success', 'message', 'data'],
+		properties: {
+			success: { type: 'boolean', example: true },
+			message: { type: 'string', example: 'OK' },
+			data: { $ref: '#/components/schemas/FolkArtData' }
+		},
+	},
+
+	FolkArtListResponse: {
+		type: 'object',
+		required: ['success', 'message', 'data'],
+		properties: {
+			success: { type: 'boolean', example: true },
+			message: { type: 'string', example: 'OK' },
+			data: {
+				type: 'array',
+				items: { $ref: '#/components/schemas/FolkArtData' }
+			},
+		},
+	},
+
+	// ── Custom schemas ───────────────────────────────────────────────────────
+
+	CustomCreateRequest: {
+		type: 'object',
+		required: ['name'],
+		properties: {
+			name: { type: 'string', example: 'Nghi lễ thờ cúng Hùng Vương' },
+			description: { type: 'string', example: 'Tục lệ giỗ Tổ tiên của dân tộc Việt...' },
+			time_period: { type: 'string', example: 'Mùng 10 tháng Ba âm lịch' },
+			rituals: { type: 'string', example: 'Dâng hương, rước kiệu, tế lễ...' },
+			image_url: { type: 'string', example: 'https://example.com/images/hungvuong.jpg' }
+		},
+	},
+
+	CustomUpdateRequest: {
+		type: 'object',
+		properties: {
+			name: { type: 'string', example: 'Tín ngưỡng thờ cúng Hùng Vương' },
+			description: { type: 'string', example: 'Tục thờ Tổ...' },
+			time_period: { type: 'string', example: 'Tháng Ba âm lịch' },
+			rituals: { type: 'string', example: 'Lễ dâng hương, hội dân gian...' },
+			image_url: { type: 'string', example: 'https://example.com/images/hung_vuong.jpg' }
+		},
+	},
+
+	CustomData: {
+		type: 'object',
+		properties: {
+			id: { type: 'integer', example: 1 },
+			name: { type: 'string', example: 'Tín ngưỡng thờ cúng Hùng Vương' },
+			description: { type: 'string', example: 'Tục lệ giỗ Tổ...' },
+			time_period: { type: 'string', example: 'Mùng 10 tháng Ba' },
+			rituals: { type: 'string', example: 'Nghi lễ chính...' },
+			image_url: { type: 'string', example: 'https://example.com/images/hungvuong.jpg' },
+			created_at: { type: 'string', format: 'date-time', example: '2026-06-19T15:45:00.000Z' },
+			updated_at: { type: 'string', format: 'date-time', example: '2026-06-19T15:45:00.000Z' }
+		},
+	},
+
+	CustomResponse: {
+		type: 'object',
+		required: ['success', 'message', 'data'],
+		properties: {
+			success: { type: 'boolean', example: true },
+			message: { type: 'string', example: 'OK' },
+			data: { $ref: '#/components/schemas/CustomData' }
+		},
+	},
+
+	CustomListResponse: {
+		type: 'object',
+		required: ['success', 'message', 'data'],
+		properties: {
+			success: { type: 'boolean', example: true },
+			message: { type: 'string', example: 'OK' },
+			data: {
+				type: 'array',
+				items: { $ref: '#/components/schemas/CustomData' }
+			},
+		},
+	},
+
+	// ── Notification schemas ─────────────────────────────────────────────────
+
+	NotificationData: {
+		type: 'object',
+		properties: {
+			id: { type: 'integer', example: 1 },
+			user_id: { type: 'integer', example: 5 },
+			actor_id: { type: 'integer', nullable: true, example: 6 },
+			post_id: { type: 'integer', nullable: true, example: 10 },
+			comment_id: { type: 'integer', nullable: true, example: 2 },
+			url: { type: 'string', nullable: true, example: '/post/10' },
+			message: { type: 'string', example: 'nguyen_van_b đã bình luận về bài viết của bạn' },
+			is_read: { type: 'boolean', example: false },
+			created_at: { type: 'string', format: 'date-time', example: '2026-06-19T15:45:00.000Z' },
+			actor: { $ref: '#/components/schemas/UserBrief', nullable: true },
+			post: {
+				type: 'object',
+				nullable: true,
+				properties: {
+					id: { type: 'integer', example: 10 },
+					title: { type: 'string', example: 'Title bài viết' }
+				}
+			},
+			comment: {
+				type: 'object',
+				nullable: true,
+				properties: {
+					id: { type: 'integer', example: 2 },
+					content: { type: 'string', example: 'Nội dung bình luận' }
+				}
+			}
+		},
+	},
+
+	NotificationListResponse: {
+		type: 'object',
+		required: ['success', 'message', 'data'],
+		properties: {
+			success: { type: 'boolean', example: true },
+			message: { type: 'string', example: 'OK' },
+			data: {
+				type: 'array',
+				items: { $ref: '#/components/schemas/NotificationData' }
+			},
+		},
+	},
 };

@@ -51,6 +51,11 @@ const swaggerSpec = swaggerJSDoc({
 			{ name: 'Place', description: 'API liên quan đến địa điểm (place)' },
 			{ name: 'Search', description: 'API tìm kiếm (Elasticsearch)' },
 			{ name: 'Comment', description: 'API liên quan đến comment bài viết' },
+			{ name: 'Exhibition', description: 'API triển lãm ảo (Virtual Exhibition)' },
+			{ name: 'Cuisine', description: 'API ẩm thực (Cuisine)' },
+			{ name: 'FolkArt', description: 'API nghệ thuật dân gian (Folk Art)' },
+			{ name: 'Custom', description: 'API phong tục tập quán (Customs)' },
+			{ name: 'Notification', description: 'API thông báo (Notifications)' },
 		],
 		components: {
 			schemas,

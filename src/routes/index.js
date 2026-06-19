@@ -10,6 +10,7 @@ const NotificationRoute = require('./NotificationRouter');
 const CuisineRoute = require('./CuisineRouter');
 const CustomRoute = require('./CustomRouter');
 const FolkArtRoute = require('./FolkArtRouter');
+const ExhibitionRoute = require('./ExhibitionRouter');
 const AuthManager = require('../manager/authManager');
 
 const initRoutes = (app) =>{
@@ -26,5 +27,6 @@ const initRoutes = (app) =>{
     app.use("/api/v1/cuisine", CuisineRoute);
     app.use("/api/v1/custom", CustomRoute);
     app.use("/api/v1/folk-art", FolkArtRoute);
+    app.use("/api/v1/exhibition", ExhibitionRoute);
 }
 module.exports = initRoutes;

@@ -7,6 +7,7 @@ var _Comment = require("./comment");
 var _CuisinePlace = require("./cuisinePlace");
 var _Cuisine = require("./cuisine");
 var _Custom = require("./custom");
+var _Exhibition = require("./exhibition");
 var _FolkArt = require("./folkArt");
 var _Location = require("./location");
 var _Notification = require("./notification");
@@ -28,6 +29,7 @@ function initModels(sequelize) {
   var CuisinePlace = _CuisinePlace(sequelize, DataTypes);
   var Cuisine = _Cuisine(sequelize, DataTypes);
   var Custom = _Custom(sequelize, DataTypes);
+  var Exhibition = _Exhibition(sequelize, DataTypes);
   var FolkArt = _FolkArt(sequelize, DataTypes);
   var Location = _Location(sequelize, DataTypes);
   var Notification = _Notification(sequelize, DataTypes);
@@ -52,14 +54,14 @@ function initModels(sequelize) {
   Comment.hasMany(Notification, { as: "notifications", foreignKey: "comment_id"});
   CuisinePlace.belongsTo(Cuisine, { as: "cuisine", foreignKey: "cuisine_id"});
   Cuisine.hasMany(CuisinePlace, { as: "cuisine_places", foreignKey: "cuisine_id"});
+  Asset.belongsTo(Location, { as: "location", foreignKey: "location_id"});
+  Location.hasMany(Asset, { as: "assets", foreignKey: "location_id"});
   CheckIn.belongsTo(Location, { as: "location", foreignKey: "location_id"});
   Location.hasMany(CheckIn, { as: "check_ins", foreignKey: "location_id"});
   Post.belongsTo(Location, { as: "location", foreignKey: "location_id"});
   Location.hasMany(Post, { as: "posts", foreignKey: "location_id"});
   Review.belongsTo(Location, { as: "location", foreignKey: "location_id"});
   Location.hasMany(Review, { as: "reviews", foreignKey: "location_id"});
-  Asset.belongsTo(Location, { as: "location", foreignKey: "location_id"});
-  Location.hasMany(Asset, { as: "assets", foreignKey: "location_id"});
   CuisinePlace.belongsTo(Place, { as: "place", foreignKey: "place_id"});
   Place.hasMany(CuisinePlace, { as: "cuisine_places", foreignKey: "place_id"});
   Location.belongsTo(Place, { as: "place", foreignKey: "place_id"});
@@ -80,6 +82,8 @@ function initModels(sequelize) {
   User.hasMany(CheckIn, { as: "check_ins", foreignKey: "user_id"});
   Comment.belongsTo(User, { as: "user", foreignKey: "user_id"});
   User.hasMany(Comment, { as: "comments", foreignKey: "user_id"});
+  Exhibition.belongsTo(User, { as: "user", foreignKey: "user_id"});
+  User.hasMany(Exhibition, { as: "exhibitions", foreignKey: "user_id"});
   Notification.belongsTo(User, { as: "user", foreignKey: "user_id"});
   User.hasMany(Notification, { as: "notifications", foreignKey: "user_id"});
   Notification.belongsTo(User, { as: "actor", foreignKey: "actor_id"});
@@ -104,6 +108,7 @@ function initModels(sequelize) {
     CuisinePlace,
     Cuisine,
     Custom,
+    Exhibition,
     FolkArt,
     Location,
     Notification,
