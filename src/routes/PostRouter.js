@@ -299,4 +299,46 @@ route.get('/:id/comments', optionalAuth, PostManager.getComments);
  */
 route.post('/:id/review', requireAuth, requireRole('admin'), PostManager.review);
 
+/**
+ * @openapi
+ * /api/v1/post/{id}/share:
+ *   post:
+ *     tags:
+ *       - Post
+ *     summary: Chia sẻ bài viết (trả về URL tới bài viết đó)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: ID của bài post cần chia sẻ
+ *     responses:
+ *       '200':
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     shareUrl:
+ *                       type: string
+ *       '403':
+ *         description: Forbidden (Bạn không có quyền truy cập bài viết này)
+ *       '404':
+ *         description: Post not found
+ */
+route.post('/:id/share', optionalAuth, PostManager.share);
+
 module.exports = route;
+

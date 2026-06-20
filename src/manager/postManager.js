@@ -288,6 +288,34 @@ class PostManager {
             data: postController.addPermissionFlags(payload, req.user || {}),
         });
     });
+
+    share = asyncHandler(async (req, res) => {
+        const postId = postController.parsePositiveInt(req.params.id, 'id');
+        const post = await postController.getPostById(postId);
+
+        if (!post) {
+            throw new HttpError(404, 'Post not found');
+        }
+
+        const user = req.user || {};
+        const isAdmin = String(user.role || '').toLowerCase() === 'admin';
+        const currentUserId = Number(user.userId || user.id);
+
+        if (post.status !== 'accepted' && !isAdmin && Number(post.user_id) !== currentUserId) {
+            throw new HttpError(403, 'Bạn không có quyền truy cập bài viết này');
+        }
+
+        const baseUrl = process.env.VITE_URL || 'http://localhost:5173/';
+        const sanitizedBaseUrl = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+        const shareUrl = `${sanitizedBaseUrl}post/${postId}`;
+
+        return sendSuccess(res, {
+            statusCode: 200,
+            message: 'OK',
+            data: { shareUrl },
+        });
+    });
 }
 
 module.exports = new PostManager();
+
