@@ -141,19 +141,31 @@ class PostController {
         if (queryParams.date_from || queryParams.date_to) {
             const dateFilter = {};
             let hasFilter = false;
+            
             if (queryParams.date_from) {
-                const fromDate = new Date(queryParams.date_from);
-                if (!isNaN(fromDate.getTime())) {
-                    dateFilter[db.Sequelize.Op.gte] = fromDate;
-                    hasFilter = true;
+                const parts = queryParams.date_from.split('-');
+                if (parts.length === 3) {
+                    const year = parseInt(parts[0], 10);
+                    const month = parseInt(parts[1], 10) - 1;
+                    const day = parseInt(parts[2], 10);
+                    const fromDate = new Date(year, month, day, 0, 0, 0, 0);
+                    if (!isNaN(fromDate.getTime())) {
+                        dateFilter[db.Sequelize.Op.gte] = fromDate;
+                        hasFilter = true;
+                    }
                 }
             }
             if (queryParams.date_to) {
-                const toDate = new Date(queryParams.date_to);
-                if (!isNaN(toDate.getTime())) {
-                    toDate.setHours(23, 59, 59, 999);
-                    dateFilter[db.Sequelize.Op.lte] = toDate;
-                    hasFilter = true;
+                const parts = queryParams.date_to.split('-');
+                if (parts.length === 3) {
+                    const year = parseInt(parts[0], 10);
+                    const month = parseInt(parts[1], 10) - 1;
+                    const day = parseInt(parts[2], 10);
+                    const toDate = new Date(year, month, day, 23, 59, 59, 999);
+                    if (!isNaN(toDate.getTime())) {
+                        dateFilter[db.Sequelize.Op.lte] = toDate;
+                        hasFilter = true;
+                    }
                 }
             }
             if (hasFilter) {
@@ -178,6 +190,42 @@ class PostController {
 
         if (queryParams.status) {
             whereClause.status = queryParams.status;
+        }
+
+        // Lọc theo ngày bắt đầu và kết thúc
+        if (queryParams.date_from || queryParams.date_to) {
+            const dateFilter = {};
+            let hasFilter = false;
+            
+            if (queryParams.date_from) {
+                const parts = queryParams.date_from.split('-');
+                if (parts.length === 3) {
+                    const year = parseInt(parts[0], 10);
+                    const month = parseInt(parts[1], 10) - 1;
+                    const day = parseInt(parts[2], 10);
+                    const fromDate = new Date(year, month, day, 0, 0, 0, 0);
+                    if (!isNaN(fromDate.getTime())) {
+                        dateFilter[db.Sequelize.Op.gte] = fromDate;
+                        hasFilter = true;
+                    }
+                }
+            }
+            if (queryParams.date_to) {
+                const parts = queryParams.date_to.split('-');
+                if (parts.length === 3) {
+                    const year = parseInt(parts[0], 10);
+                    const month = parseInt(parts[1], 10) - 1;
+                    const day = parseInt(parts[2], 10);
+                    const toDate = new Date(year, month, day, 23, 59, 59, 999);
+                    if (!isNaN(toDate.getTime())) {
+                        dateFilter[db.Sequelize.Op.lte] = toDate;
+                        hasFilter = true;
+                    }
+                }
+            }
+            if (hasFilter) {
+                whereClause.created_at = dateFilter;
+            }
         }
 
         const posts = await Post.findAll({
