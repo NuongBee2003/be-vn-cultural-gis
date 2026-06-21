@@ -56,5 +56,7 @@ route.post('/register', AuthManager.register);
  *         description: Invalid email or password
  */
 route.post('/login', AuthManager.login);
+route.post('/forgot-password', AuthManager.forgotPassword);
+route.post('/reset-password', AuthManager.resetPassword);
 
 module.exports = route;
