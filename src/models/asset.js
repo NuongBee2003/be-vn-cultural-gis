@@ -16,14 +16,6 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       defaultValue: 0
     },
-    location_id: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: 'locations',
-        key: 'id'
-      }
-    },
     post_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -37,6 +29,14 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true,
       references: {
         model: 'reviews',
+        key: 'id'
+      }
+    },
+    location_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'locations',
         key: 'id'
       }
     }
@@ -54,13 +54,6 @@ module.exports = function(sequelize, DataTypes) {
         ]
       },
       {
-        name: "fk_assets_locations",
-        using: "BTREE",
-        fields: [
-          { name: "location_id" },
-        ]
-      },
-      {
         name: "assets_post_id_fkey",
         using: "BTREE",
         fields: [
@@ -72,6 +65,13 @@ module.exports = function(sequelize, DataTypes) {
         using: "BTREE",
         fields: [
           { name: "review_id" },
+        ]
+      },
+      {
+        name: "fk_assets_locations",
+        using: "BTREE",
+        fields: [
+          { name: "location_id" },
         ]
       },
     ]
