@@ -764,4 +764,220 @@ module.exports = {
 			},
 		},
 	},
+
+	// ── Package schemas ───────────────────────────────────────────────────────
+
+	/**
+	 * Thông tin một gói dịch vụ (package)
+	 */
+	PackageData: {
+		type: 'object',
+		properties: {
+			id: { type: 'integer', example: 1 },
+			name: { type: 'string', example: 'Free', description: 'Tên gói dịch vụ.' },
+			description: { type: 'string', nullable: true, example: 'Gói miễn phí, tối đa 3 địa điểm.' },
+			max_places: {
+				type: 'integer',
+				example: 3,
+				description: 'Số lượng địa điểm tối đa mà user thuộc gói này được phép tạo.',
+			},
+			price: {
+				type: 'number',
+				format: 'float',
+				example: 0.00,
+				description: 'Giá gói (VNĐ). 0 = miễn phí.',
+			},
+			duration_days: {
+				type: 'integer',
+				example: 30,
+				description: 'Số ngày hiệu lực của gói kể từ ngày đăng ký.',
+			},
+			created_at: { type: 'string', format: 'date-time', example: '2026-06-23T10:00:00.000Z' },
+			updated_at: { type: 'string', format: 'date-time', example: '2026-06-23T10:00:00.000Z' },
+		},
+	},
+
+	PackageCreateRequest: {
+		type: 'object',
+		required: ['name', 'max_places', 'price', 'duration_days'],
+		properties: {
+			name: {
+				type: 'string',
+				example: 'Standard',
+				description: 'Tên gói dịch vụ. Phải là duy nhất.',
+			},
+			description: {
+				type: 'string',
+				nullable: true,
+				example: 'Gói tiêu chuẩn cho phép đăng tối đa 10 địa điểm.',
+			},
+			max_places: {
+				type: 'integer',
+				minimum: 0,
+				example: 10,
+				description: 'Số lượng địa điểm tối đa user được tạo khi dùng gói này.',
+			},
+			price: {
+				type: 'number',
+				minimum: 0,
+				example: 99000,
+				description: 'Giá gói (VNĐ). Dùng 0 cho gói miễn phí.',
+			},
+			duration_days: {
+				type: 'integer',
+				minimum: 1,
+				example: 30,
+				description: 'Số ngày hiệu lực kể từ ngày đăng ký.',
+			},
+		},
+	},
+
+	PackageUpdateRequest: {
+		type: 'object',
+		properties: {
+			name: { type: 'string', example: 'Standard Plus' },
+			description: { type: 'string', nullable: true, example: 'Gói nâng cấp từ Standard.' },
+			max_places: { type: 'integer', minimum: 0, example: 15 },
+			price: { type: 'number', minimum: 0, example: 149000 },
+			duration_days: { type: 'integer', minimum: 1, example: 30 },
+		},
+	},
+
+	PackageResponse: {
+		type: 'object',
+		properties: {
+			success: { type: 'boolean', example: true },
+			message: { type: 'string', example: 'Tạo gói dịch vụ thành công' },
+			data: { $ref: '#/components/schemas/PackageData' },
+		},
+	},
+
+	PackageListResponse: {
+		type: 'object',
+		properties: {
+			success: { type: 'boolean', example: true },
+			message: { type: 'string', example: 'OK' },
+			data: {
+				type: 'array',
+				items: { $ref: '#/components/schemas/PackageData' },
+			},
+		},
+	},
+
+	// ── Subscription schemas ──────────────────────────────────────────────────
+
+	SubscriptionData: {
+		type: 'object',
+		description: 'Thông tin một lượt đăng ký gói dịch vụ của người dùng.',
+		properties: {
+			id: { type: 'integer', example: 5 },
+			user_id: { type: 'integer', example: 12 },
+			package_id: { type: 'integer', example: 2 },
+			start_date: {
+				type: 'string',
+				format: 'date-time',
+				example: '2026-06-23T10:00:00.000Z',
+				description: 'Ngày bắt đầu hiệu lực.',
+			},
+			end_date: {
+				type: 'string',
+				format: 'date-time',
+				nullable: true,
+				example: '2026-07-23T10:00:00.000Z',
+				description: 'Ngày hết hạn. Null nếu gói không có thời hạn.',
+			},
+			status: {
+				type: 'string',
+				enum: ['active', 'expired', 'cancelled'],
+				example: 'active',
+				description: 'Trạng thái gói: active (đang dùng), expired (hết hạn), cancelled (đã hủy).',
+			},
+			created_at: { type: 'string', format: 'date-time', example: '2026-06-23T10:00:00.000Z' },
+			package: { $ref: '#/components/schemas/PackageData', nullable: true },
+			user: { $ref: '#/components/schemas/UserBrief', nullable: true },
+		},
+	},
+
+	SubscribeRequest: {
+		type: 'object',
+		required: ['packageId'],
+		properties: {
+			packageId: {
+				type: 'integer',
+				minimum: 1,
+				example: 2,
+				description: 'ID của gói dịch vụ muốn đăng ký. Gói active hiện tại sẽ bị tự động hủy (expired) trước khi gói mới được kích hoạt.',
+			},
+		},
+	},
+
+	SubscriptionResponse: {
+		type: 'object',
+		properties: {
+			success: { type: 'boolean', example: true },
+			message: { type: 'string', example: 'Đăng ký gói "Standard" thành công!' },
+			data: { $ref: '#/components/schemas/SubscriptionData' },
+		},
+	},
+
+	SubscriptionActiveResponse: {
+		type: 'object',
+		description: 'Thông tin gói đang hoạt động của user.',
+		properties: {
+			success: { type: 'boolean', example: true },
+			message: { type: 'string', example: 'OK' },
+			data: {
+				type: 'object',
+				properties: {
+					subscription: {
+						nullable: true,
+						description: 'Null nếu user chưa đăng ký gói nào (dùng mặc định Free).',
+						allOf: [{ $ref: '#/components/schemas/SubscriptionData' }],
+					},
+					package: { $ref: '#/components/schemas/PackageData' },
+					is_default: {
+						type: 'boolean',
+						example: false,
+						description: 'True nếu user đang dùng gói mặc định (chưa đăng ký gói trả phí).',
+					},
+				},
+			},
+		},
+	},
+
+	SubscriptionListResponse: {
+		type: 'object',
+		properties: {
+			success: { type: 'boolean', example: true },
+			message: { type: 'string', example: 'OK' },
+			data: {
+				type: 'array',
+				items: { $ref: '#/components/schemas/SubscriptionData' },
+			},
+			meta: {
+				type: 'object',
+				properties: {
+					total: { type: 'integer', example: 100 },
+					page: { type: 'integer', example: 1 },
+					limit: { type: 'integer', example: 20 },
+					totalPages: { type: 'integer', example: 5 },
+				},
+			},
+		},
+	},
+
+	PlaceLimitErrorResponse: {
+		type: 'object',
+		description: 'Lỗi trả về khi user đã đạt giới hạn số địa điểm của gói đang dùng.',
+		properties: {
+			message: {
+				type: 'string',
+				example: 'Bạn đã đạt giới hạn đăng địa điểm của gói "Free" (Tối đa: 3 địa điểm). Vui lòng nâng cấp gói để tiếp tục.',
+			},
+			current_count: { type: 'integer', example: 3, description: 'Số địa điểm hiện tại user đã tạo.' },
+			max_places: { type: 'integer', example: 3, description: 'Giới hạn tối đa của gói.' },
+			package_name: { type: 'string', example: 'Free', description: 'Tên gói hiện tại.' },
+		},
+	},
 };
+

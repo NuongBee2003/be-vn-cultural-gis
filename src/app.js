@@ -56,6 +56,9 @@ const swaggerSpec = swaggerJSDoc({
 			{ name: 'FolkArt', description: 'API nghệ thuật dân gian (Folk Art)' },
 			{ name: 'Custom', description: 'API phong tục tập quán (Customs)' },
 			{ name: 'Notification', description: 'API thông báo (Notifications)' },
+			{ name: 'Package', description: 'API quản lý gói dịch vụ (Packages) — Admin có thể tạo/sửa/xóa, Public xem danh sách' },
+			{ name: 'Subscription', description: 'API đăng ký và quản lý gói dịch vụ của người dùng (User Subscriptions)' },
+			{ name: 'Review', description: 'API quản lý đánh giá/nhận xét (Reviews)' },
 		],
 		components: {
 			schemas,

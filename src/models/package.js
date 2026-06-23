@@ -1,42 +1,48 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('User', {
+  return sequelize.define('Package', {
     id: {
       autoIncrement: true,
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true
     },
-    username: {
+    name: {
       type: DataTypes.STRING(100),
       allowNull: false
     },
-    email: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-      unique: "users_email_key"
-    },
-    password_hash: {
-      type: DataTypes.STRING(191),
-      allowNull: false
-    },
-    role: {
-      type: DataTypes.ENUM('admin','user','business'),
-      allowNull: false,
-      defaultValue: "user"
-    },
-    avatar: {
-      type: DataTypes.STRING(191),
+    description: {
+      type: DataTypes.TEXT,
       allowNull: true
+    },
+    max_places: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 3
+    },
+    price: {
+      type: DataTypes.DECIMAL(10,2),
+      allowNull: false,
+      defaultValue: 0.00
+    },
+    duration_days: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 30
     },
     created_at: {
       type: DataTypes.DATE(3),
-      allowNull: false,
+      allowNull: true,
+      defaultValue: Sequelize.literal('CURRENT_TIMESTAMP(3)')
+    },
+    updated_at: {
+      type: DataTypes.DATE(3),
+      allowNull: true,
       defaultValue: Sequelize.literal('CURRENT_TIMESTAMP(3)')
     }
   }, {
     sequelize,
-    tableName: 'users',
+    tableName: 'packages',
     timestamps: false,
     indexes: [
       {
@@ -45,14 +51,6 @@ module.exports = function(sequelize, DataTypes) {
         using: "BTREE",
         fields: [
           { name: "id" },
-        ]
-      },
-      {
-        name: "users_email_key",
-        unique: true,
-        using: "BTREE",
-        fields: [
-          { name: "email" },
         ]
       },
     ]

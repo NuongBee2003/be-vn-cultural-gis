@@ -31,6 +31,14 @@ module.exports = function(sequelize, DataTypes) {
     updated_at: {
       type: DataTypes.DATE(3),
       allowNull: true
+    },
+    user_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'users',
+        key: 'id'
+      }
     }
   }, {
     sequelize,
@@ -50,6 +58,13 @@ module.exports = function(sequelize, DataTypes) {
         using: "BTREE",
         fields: [
           { name: "category_id" },
+        ]
+      },
+      {
+        name: "fk_places_user_id",
+        using: "BTREE",
+        fields: [
+          { name: "user_id" },
         ]
       },
     ]

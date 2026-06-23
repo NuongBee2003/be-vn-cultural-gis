@@ -211,7 +211,7 @@ class PlaceController {
 
     async createPlace(payload, options = {}) {
         const { transaction } = options;
-        const { name, description, category_id } = payload || {};
+        const { name, description, category_id, user_id } = payload || {};
 
         if (!name || typeof name !== 'string') {
             const err = new Error('name is required');
@@ -224,6 +224,7 @@ class PlaceController {
                 name,
                 description,
                 category_id,
+                user_id: user_id || null,
             },
             transaction ? { transaction } : undefined
         );

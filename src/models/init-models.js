@@ -12,6 +12,7 @@ var _FolkArt = require("./folkArt");
 var _Holiday = require("./holiday");
 var _Location = require("./location");
 var _Notification = require("./notification");
+var _Package = require("./package");
 var _Place = require("./place");
 var _PostLike = require("./postLike");
 var _Post = require("./post");
@@ -19,6 +20,7 @@ var _ReviewLike = require("./reviewLike");
 var _Review = require("./review");
 var _SchemaMigration = require("./schemaMigration");
 var _Setting = require("./setting");
+var _UserSubscription = require("./userSubscription");
 var _User = require("./user");
 var _Wishlist = require("./wishlist");
 
@@ -36,6 +38,7 @@ function initModels(sequelize) {
   var Holiday = _Holiday(sequelize, DataTypes);
   var Location = _Location(sequelize, DataTypes);
   var Notification = _Notification(sequelize, DataTypes);
+  var Package = _Package(sequelize, DataTypes);
   var Place = _Place(sequelize, DataTypes);
   var PostLike = _PostLike(sequelize, DataTypes);
   var Post = _Post(sequelize, DataTypes);
@@ -43,6 +46,7 @@ function initModels(sequelize) {
   var Review = _Review(sequelize, DataTypes);
   var SchemaMigration = _SchemaMigration(sequelize, DataTypes);
   var Setting = _Setting(sequelize, DataTypes);
+  var UserSubscription = _UserSubscription(sequelize, DataTypes);
   var User = _User(sequelize, DataTypes);
   var Wishlist = _Wishlist(sequelize, DataTypes);
 
@@ -66,6 +70,8 @@ function initModels(sequelize) {
   Location.hasMany(Post, { as: "posts", foreignKey: "location_id"});
   Review.belongsTo(Location, { as: "location", foreignKey: "location_id"});
   Location.hasMany(Review, { as: "reviews", foreignKey: "location_id"});
+  UserSubscription.belongsTo(Package, { as: "package", foreignKey: "package_id"});
+  Package.hasMany(UserSubscription, { as: "user_subscriptions", foreignKey: "package_id"});
   CuisinePlace.belongsTo(Place, { as: "place", foreignKey: "place_id"});
   Place.hasMany(CuisinePlace, { as: "cuisine_places", foreignKey: "place_id"});
   Location.belongsTo(Place, { as: "place", foreignKey: "place_id"});
@@ -92,6 +98,8 @@ function initModels(sequelize) {
   User.hasMany(Notification, { as: "notifications", foreignKey: "user_id"});
   Notification.belongsTo(User, { as: "actor", foreignKey: "actor_id"});
   User.hasMany(Notification, { as: "actor_notifications", foreignKey: "actor_id"});
+  Place.belongsTo(User, { as: "user", foreignKey: "user_id"});
+  User.hasMany(Place, { as: "places", foreignKey: "user_id"});
   PostLike.belongsTo(User, { as: "user", foreignKey: "user_id"});
   User.hasMany(PostLike, { as: "post_likes", foreignKey: "user_id"});
   Post.belongsTo(User, { as: "user", foreignKey: "user_id"});
@@ -100,6 +108,8 @@ function initModels(sequelize) {
   User.hasMany(ReviewLike, { as: "review_likes", foreignKey: "user_id"});
   Review.belongsTo(User, { as: "user", foreignKey: "user_id"});
   User.hasMany(Review, { as: "reviews", foreignKey: "user_id"});
+  UserSubscription.belongsTo(User, { as: "user", foreignKey: "user_id"});
+  User.hasMany(UserSubscription, { as: "user_subscriptions", foreignKey: "user_id"});
   Wishlist.belongsTo(User, { as: "user", foreignKey: "user_id"});
   User.hasMany(Wishlist, { as: "wishlists", foreignKey: "user_id"});
 
@@ -117,6 +127,7 @@ function initModels(sequelize) {
     Holiday,
     Location,
     Notification,
+    Package,
     Place,
     PostLike,
     Post,
@@ -124,6 +135,7 @@ function initModels(sequelize) {
     Review,
     SchemaMigration,
     Setting,
+    UserSubscription,
     User,
     Wishlist,
   };

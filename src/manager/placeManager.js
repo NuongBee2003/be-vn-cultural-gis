@@ -54,6 +54,8 @@ class PlaceManager {
 
     async create(req, res) {
         try {
+            const userId = req.userId;
+            const userRole = String(req.user?.role || '').toLowerCase();
             const { locations } = req.body || {};
 
             if (!locations || !Array.isArray(locations) || locations.length === 0) {
@@ -62,11 +64,65 @@ class PlaceManager {
                 throw err;
             }
 
+            // Kiểm tra giới hạn số địa điểm (trừ admin)
+            if (userRole !== 'admin' && userId) {
+                const { Op } = require('sequelize');
+                const now = new Date();
+
+                // Tìm gói đang active của user
+                const activeSub = await db.UserSubscription.findOne({
+                    where: {
+                        user_id: userId,
+                        status: 'active',
+                        [Op.or]: [
+                            { end_date: null },
+                            { end_date: { [Op.gt]: now } },
+                        ],
+                    },
+                    include: [{ model: db.Package, as: 'package' }],
+                    order: [['created_at', 'DESC']],
+                });
+
+                // Giới hạn mặc định nếu không có gói: 3 (Free)
+                let maxPlaces = 3;
+                let packageName = 'Free';
+
+                if (activeSub && activeSub.package) {
+                    maxPlaces = activeSub.package.max_places;
+                    packageName = activeSub.package.name;
+                } else {
+                    // Lấy gói Free từ DB nếu có
+                    const freePkg = await db.Package.findOne({
+                        where: { price: 0.00 },
+                        order: [['max_places', 'ASC']],
+                    });
+                    if (freePkg) {
+                        maxPlaces = freePkg.max_places;
+                        packageName = freePkg.name;
+                    }
+                }
+
+                // Đếm số địa điểm user đã tạo
+                const currentCount = await db.Place.count({ where: { user_id: userId } });
+
+                if (currentCount >= maxPlaces) {
+                    return res.status(403).json({
+                        message: `Bạn đã đạt giới hạn đăng địa điểm của gói "${packageName}" (Tối đa: ${maxPlaces} địa điểm). Vui lòng nâng cấp gói để tiếp tục.`,
+                        current_count: currentCount,
+                        max_places: maxPlaces,
+                        package_name: packageName,
+                    });
+                }
+            }
+
             let transaction;
             try {
                 transaction = await transactionController.begin();
 
-                const createdPlace = await placeController.createPlace(req.body, { transaction });
+                const createdPlace = await placeController.createPlace(
+                    { ...req.body, user_id: userId || null },
+                    { transaction }
+                );
 
                 for (const loc of locations) {
                     const createdLoc = await locationController.createLocation(

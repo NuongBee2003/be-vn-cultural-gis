@@ -86,6 +86,8 @@ route.delete('/:id/review/:reviewId', requireAuth, PlaceManager.deleteReview);
  *     description: |
  *       Tạo mới một địa điểm. Nếu truyền thêm mảng `locations`, API sẽ tự động tạo các location này 
  *       và gắn với place vừa tạo thông qua transaction.
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -94,18 +96,36 @@ route.delete('/:id/review/:reviewId', requireAuth, PlaceManager.deleteReview);
  *             $ref: '#/components/schemas/PlaceCreateRequest'
  *     responses:
  *       201:
- *         description: Created successfully
+ *         description: Tạo địa điểm thành công (bao gồm locations nếu có truyền)
  *         content:
  *           application/json:
  *             schema:
  *               type: object
- *               description: Đối tượng Place vừa được tạo (bao gồm locations nếu có truyền)
+ *               description: Đối tượng Place vừa được tạo kèm theo locations
  *       400:
- *         description: Bad Request (Thiếu dữ liệu bắt buộc hoặc sai định dạng)
+ *         description: Thiếu dữ liệu bắt buộc hoặc sai định dạng
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Chưa đăng nhập — cần cung cấp Bearer Token hợp lệ
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: |
+ *           Đã đạt giới hạn số địa điểm theo gói dịch vụ đang dùng.
+ *           Vui lòng nâng cấp gói tại `POST /api/v1/subscription/subscribe`.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PlaceLimitErrorResponse'
  *       500:
- *         description: Internal server error
+ *         description: Lỗi server
  */
-route.post('/', PlaceManager.create);
+route.post('/', requireAuth, PlaceManager.create);
 route.put('/:id', PlaceManager.update);
 route.delete('/:id', PlaceManager.delete);
 
