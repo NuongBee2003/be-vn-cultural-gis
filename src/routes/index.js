@@ -12,6 +12,9 @@ const CustomRoute = require('./CustomRouter');
 const FolkArtRoute = require('./FolkArtRouter');
 const ExhibitionRoute = require('./ExhibitionRouter');
 const AuthManager = require('../manager/authManager');
+const SettingRoute = require('./SettingRouter');
+const ReviewRoute = require('./ReviewRouter');
+const RoleRoute = require('./RoleRouter');
 
 const initRoutes = (app) =>{
     app.post("/api/v1/login", AuthManager.login);
@@ -28,5 +31,8 @@ const initRoutes = (app) =>{
     app.use("/api/v1/custom", CustomRoute);
     app.use("/api/v1/folk-art", FolkArtRoute);
     app.use("/api/v1/exhibition", ExhibitionRoute);
+    app.use("/api/v1/setting", SettingRoute);
+    app.use("/api/v1/review", ReviewRoute);
+    app.use("/api/v1/role", RoleRoute);
 }
 module.exports = initRoutes;
