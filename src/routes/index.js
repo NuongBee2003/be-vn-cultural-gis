@@ -15,6 +15,7 @@ const AuthManager = require('../manager/authManager');
 const SettingRoute = require('./SettingRouter');
 const ReviewRoute = require('./ReviewRouter');
 const RoleRoute = require('./RoleRouter');
+const PermissionRoute = require('./PermissionRouter');
 
 const initRoutes = (app) =>{
     app.post("/api/v1/login", AuthManager.login);
@@ -34,5 +35,6 @@ const initRoutes = (app) =>{
     app.use("/api/v1/setting", SettingRoute);
     app.use("/api/v1/review", ReviewRoute);
     app.use("/api/v1/role", RoleRoute);
+    app.use("/api/v1/permission", PermissionRoute);
 }
 module.exports = initRoutes;
