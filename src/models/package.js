@@ -20,6 +20,11 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       defaultValue: 3
     },
+    max_products: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 3
+    },
     price: {
       type: DataTypes.DECIMAL(10,2),
       allowNull: false,
@@ -33,12 +38,12 @@ module.exports = function(sequelize, DataTypes) {
     created_at: {
       type: DataTypes.DATE(3),
       allowNull: true,
-      defaultValue: Sequelize.literal('CURRENT_TIMESTAMP(3)')
+      defaultValue: "CURRENT_TIMESTAMP(3)"
     },
     updated_at: {
       type: DataTypes.DATE(3),
       allowNull: true,
-      defaultValue: Sequelize.literal('CURRENT_TIMESTAMP(3)')
+      defaultValue: "CURRENT_TIMESTAMP(3)"
     }
   }, {
     sequelize,

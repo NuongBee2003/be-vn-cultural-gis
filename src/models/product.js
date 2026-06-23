@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('Cuisine', {
+  return sequelize.define('Product', {
     id: {
       autoIncrement: true,
       type: DataTypes.INTEGER,
@@ -15,19 +15,26 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.TEXT,
       allowNull: true
     },
-    origin: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-      comment: "Nguồn gốc vùng miền"
-    },
-    ingredients: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-      comment: "Nguyên liệu đặc trưng"
+    price: {
+      type: DataTypes.DECIMAL(10,2),
+      allowNull: false,
+      defaultValue: 0.00
     },
     image_url: {
-      type: DataTypes.STRING(500),
+      type: DataTypes.STRING(255),
       allowNull: true
+    },
+    affiliate_url: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    user_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'users',
+        key: 'id'
+      }
     },
     created_at: {
       type: DataTypes.DATE(3),
@@ -36,11 +43,12 @@ module.exports = function(sequelize, DataTypes) {
     },
     updated_at: {
       type: DataTypes.DATE(3),
-      allowNull: true
+      allowNull: false,
+      defaultValue: "CURRENT_TIMESTAMP(3)"
     }
   }, {
     sequelize,
-    tableName: 'cuisines',
+    tableName: 'products',
     timestamps: false,
     indexes: [
       {
@@ -49,6 +57,13 @@ module.exports = function(sequelize, DataTypes) {
         using: "BTREE",
         fields: [
           { name: "id" },
+        ]
+      },
+      {
+        name: "user_id",
+        using: "BTREE",
+        fields: [
+          { name: "user_id" },
         ]
       },
     ]

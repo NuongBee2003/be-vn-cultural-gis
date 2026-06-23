@@ -16,6 +16,7 @@ var _Package = require("./package");
 var _Place = require("./place");
 var _PostLike = require("./postLike");
 var _Post = require("./post");
+var _Product = require("./product");
 var _ReviewLike = require("./reviewLike");
 var _Review = require("./review");
 var _SchemaMigration = require("./schemaMigration");
@@ -42,6 +43,7 @@ function initModels(sequelize) {
   var Place = _Place(sequelize, DataTypes);
   var PostLike = _PostLike(sequelize, DataTypes);
   var Post = _Post(sequelize, DataTypes);
+  var Product = _Product(sequelize, DataTypes);
   var ReviewLike = _ReviewLike(sequelize, DataTypes);
   var Review = _Review(sequelize, DataTypes);
   var SchemaMigration = _SchemaMigration(sequelize, DataTypes);
@@ -104,6 +106,8 @@ function initModels(sequelize) {
   User.hasMany(PostLike, { as: "post_likes", foreignKey: "user_id"});
   Post.belongsTo(User, { as: "user", foreignKey: "user_id"});
   User.hasMany(Post, { as: "posts", foreignKey: "user_id"});
+  Product.belongsTo(User, { as: "user", foreignKey: "user_id"});
+  User.hasMany(Product, { as: "products", foreignKey: "user_id"});
   ReviewLike.belongsTo(User, { as: "user", foreignKey: "user_id"});
   User.hasMany(ReviewLike, { as: "review_likes", foreignKey: "user_id"});
   Review.belongsTo(User, { as: "user", foreignKey: "user_id"});
@@ -131,6 +135,7 @@ function initModels(sequelize) {
     Place,
     PostLike,
     Post,
+    Product,
     ReviewLike,
     Review,
     SchemaMigration,

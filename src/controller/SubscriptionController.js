@@ -77,10 +77,6 @@ class SubscriptionController {
     }
 
     /**
-     * POST /api/v1/subscription/subscribe
-     * Đăng ký / mua một gói mới
-     * Body: { packageId }
-     */
     async subscribe(req, res) {
         const transaction = await db.sequelize.transaction();
         try {
@@ -102,51 +98,159 @@ class SubscriptionController {
                 return sendError(res, 404, 'Không tìm thấy gói dịch vụ');
             }
 
-            // Hủy tất cả gói active hiện tại của user
-            await db.UserSubscription.update(
-                { status: 'expired', updated_at: db.sequelize.literal('CURRENT_TIMESTAMP(3)') },
-                {
-                    where: { user_id: userId, status: 'active' },
-                    transaction,
-                }
-            );
-
-            // Tính ngày hết hạn
             const startDate = new Date();
             const endDate = new Date(startDate);
             endDate.setDate(endDate.getDate() + pkg.duration_days);
 
-            // Tạo subscription mới
-            const newSub = await db.UserSubscription.create({
-                user_id: userId,
-                package_id: pkg.id,
-                start_date: startDate,
-                end_date: endDate,
-                status: 'active',
-            }, { transaction });
+            if (Number(pkg.price) === 0) {
+                // Gói Free: kích hoạt ngay lập tức
+                await db.UserSubscription.update(
+                    { status: 'expired', updated_at: db.sequelize.literal('CURRENT_TIMESTAMP(3)') },
+                    {
+                        where: { user_id: userId, status: 'active' },
+                        transaction,
+                    }
+                );
 
-            await transaction.commit();
+                const newSub = await db.UserSubscription.create({
+                    user_id: userId,
+                    package_id: pkg.id,
+                    start_date: startDate,
+                    end_date: endDate,
+                    status: 'active',
+                }, { transaction });
 
-            // Trả về subscription kèm package
-            const result = await db.UserSubscription.findByPk(newSub.id, {
-                include: [{
-                    model: db.Package,
-                    as: 'package',
-                    attributes: ['id', 'name', 'max_places', 'price', 'duration_days'],
-                }],
-            });
+                await transaction.commit();
 
-            return sendSuccess(res, {
-                statusCode: 201,
-                message: `Đăng ký gói "${pkg.name}" thành công!`,
-                data: result,
-            });
+                const result = await db.UserSubscription.findByPk(newSub.id, {
+                    include: [{
+                        model: db.Package,
+                        as: 'package',
+                        attributes: ['id', 'name', 'max_places', 'price', 'duration_days'],
+                    }],
+                });
+
+                return sendSuccess(res, {
+                    statusCode: 201,
+                    message: `Đăng ký gói "${pkg.name}" thành công!`,
+                    data: result,
+                });
+            } else {
+                // Gói có phí: Tạo ở trạng thái pending và sinh URL VNPAY
+                const newSub = await db.UserSubscription.create({
+                    user_id: userId,
+                    package_id: pkg.id,
+                    start_date: startDate,
+                    end_date: endDate,
+                    status: 'pending',
+                }, { transaction });
+
+                await transaction.commit();
+
+                const { createPaymentUrl } = require('../utils/vnpay');
+                
+                // Trực tiếp dùng id của subscription làm vnp_TxnRef
+                const paymentUrl = createPaymentUrl({
+                    amount: pkg.price,
+                    txnRef: String(newSub.id),
+                    orderInfo: `Thanh toan dang ky goi ${pkg.name}`,
+                    ipAddr: req.ip || req.headers['x-forwarded-for'] || '127.0.0.1',
+                    returnUrl: process.env.VNP_RETURN_URL || 'http://localhost:3002/api/v1/subscription/vnpay-return'
+                });
+
+                return sendSuccess(res, {
+                    statusCode: 201,
+                    message: 'Khởi tạo link thanh toán VNPAY thành công',
+                    data: {
+                        subscriptionId: newSub.id,
+                        paymentUrl
+                    }
+                });
+            }
         } catch (error) {
             await transaction.rollback();
             console.error('Lỗi khi đăng ký gói:', error);
             return sendError(res, 500, 'Lỗi server');
         }
     }
+
+    /**
+     * GET /api/v1/subscription/vnpay-return
+     * Callback nhận kết quả thanh toán từ VNPAY và xử lý kích hoạt
+     */
+    async vnpayReturn(req, res) {
+        const { verifyReturnUrl } = require('../utils/vnpay');
+        const vnp_Params = req.query;
+        
+        const isValid = verifyReturnUrl({ ...vnp_Params });
+        const frontendUrl = process.env.VITE_URL || 'http://localhost:5173/';
+        
+        if (!isValid) {
+            console.error('VNPAY Signature Verification Failed');
+            return res.redirect(`${frontendUrl}business/payment-result?status=fail&message=signature_failed`);
+        }
+        
+        const responseCode = vnp_Params['vnp_ResponseCode'];
+        const transactionStatus = vnp_Params['vnp_TransactionStatus'];
+        const subId = vnp_Params['vnp_TxnRef'];
+        
+        if (responseCode === '00' && transactionStatus === '00') {
+            const transaction = await db.sequelize.transaction();
+            try {
+                const sub = await db.UserSubscription.findByPk(subId, { transaction });
+                if (!sub) {
+                    await transaction.rollback();
+                    console.error('Subscription not found for id:', subId);
+                    return res.redirect(`${frontendUrl}business/payment-result?status=fail&message=subscription_not_found`);
+                }
+                
+                if (sub.status === 'active') {
+                    await transaction.commit();
+                    return res.redirect(`${frontendUrl}business/payment-result?status=success`);
+                }
+                
+                // 1. Hủy các gói active hiện tại của user này
+                await db.UserSubscription.update(
+                    { status: 'expired', updated_at: db.sequelize.literal('CURRENT_TIMESTAMP(3)') },
+                    {
+                        where: { user_id: sub.user_id, status: 'active' },
+                        transaction
+                    }
+                );
+                
+                // 2. Kích hoạt subscription hiện tại
+                sub.status = 'active';
+                sub.updated_at = new Date();
+                await sub.save({ transaction });
+                
+                // 3. Nâng cấp role của user thành 'business'
+                await db.User.update(
+                    { role: 'business' },
+                    { where: { id: sub.user_id }, transaction }
+                );
+                
+                await transaction.commit();
+                console.log(`Activated sub ${subId} and upgraded user ${sub.user_id} to business`);
+                return res.redirect(`${frontendUrl}business/payment-result?status=success`);
+            } catch (err) {
+                await transaction.rollback();
+                console.error('Error executing subscription activation transaction:', err);
+                return res.redirect(`${frontendUrl}business/payment-result?status=fail&message=internal_error`);
+            }
+        } else {
+            console.log(`VNPAY transaction failed with responseCode: ${responseCode}`);
+            try {
+                await db.UserSubscription.update(
+                    { status: 'cancelled', updated_at: db.sequelize.literal('CURRENT_TIMESTAMP(3)') },
+                    { where: { id: subId } }
+                );
+            } catch (e) {
+                console.error('Error cancelling subscription:', e);
+            }
+            return res.redirect(`${frontendUrl}business/payment-result?status=fail&code=${responseCode}`);
+        }
+    }
+
 
     /**
      * POST /api/v1/subscription/cancel

@@ -270,4 +270,18 @@ route.post('/subscribe', requireAuth, (req, res) => subscriptionController.subsc
  */
 route.post('/cancel', requireAuth, (req, res) => subscriptionController.cancel(req, res));
 
+/**
+ * @openapi
+ * /api/v1/subscription/vnpay-return:
+ *   get:
+ *     tags:
+ *       - Subscription
+ *     summary: Nhận phản hồi thanh toán từ VNPAY (Callback)
+ *     description: Endpoint này nhận các query parameters từ VNPAY chuyển hướng về, xác thực và kích hoạt gói nếu thành công.
+ *     responses:
+ *       302:
+ *         description: Redirect về màn hình kết quả trên Frontend
+ */
+route.get('/vnpay-return', (req, res) => subscriptionController.vnpayReturn(req, res));
+
 module.exports = route;

@@ -26,26 +26,26 @@ module.exports = function(sequelize, DataTypes) {
     start_date: {
       type: DataTypes.DATE(3),
       allowNull: true,
-      defaultValue: Sequelize.literal('CURRENT_TIMESTAMP(3)')
+      defaultValue: "CURRENT_TIMESTAMP(3)"
     },
     end_date: {
       type: DataTypes.DATE(3),
       allowNull: true
     },
     status: {
-      type: DataTypes.ENUM('active','expired','cancelled'),
+      type: DataTypes.ENUM('pending','active','expired','cancelled'),
       allowNull: false,
       defaultValue: "active"
     },
     created_at: {
       type: DataTypes.DATE(3),
       allowNull: true,
-      defaultValue: Sequelize.literal('CURRENT_TIMESTAMP(3)')
+      defaultValue: "CURRENT_TIMESTAMP(3)"
     },
     updated_at: {
       type: DataTypes.DATE(3),
       allowNull: true,
-      defaultValue: Sequelize.literal('CURRENT_TIMESTAMP(3)')
+      defaultValue: "CURRENT_TIMESTAMP(3)"
     }
   }, {
     sequelize,

@@ -83,8 +83,8 @@ class PlaceManager {
                     order: [['created_at', 'DESC']],
                 });
 
-                // Giới hạn mặc định nếu không có gói: 3 (Free)
-                let maxPlaces = 3;
+                // Giới hạn mặc định nếu không có gói: 0 (Free)
+                let maxPlaces = 0;
                 let packageName = 'Free';
 
                 if (activeSub && activeSub.package) {
