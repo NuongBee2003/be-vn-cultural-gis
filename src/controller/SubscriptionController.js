@@ -57,7 +57,7 @@ class SubscriptionController {
     /**
      * Đăng ký mua gói dịch vụ
      */
-    async subscribe({ userId, packageId, ipAddr, returnUrl }) {
+    async subscribe({ userId, packageId, ipAddr, returnUrl, businessName = null, businessPhone = null }) {
         const transaction = await db.sequelize.transaction();
         try {
             const pkg = await db.Package.findByPk(packageId);
@@ -87,7 +87,19 @@ class SubscriptionController {
                     start_date: startDate,
                     end_date: endDate,
                     status: 'active',
+                    created_at: startDate,
+                    updated_at: startDate
                 }, { transaction });
+
+                // Nâng cấp role của user thành 'business' và lưu thông tin doanh nghiệp
+                await db.User.update(
+                    {
+                        role: 'business',
+                        business_name: businessName || null,
+                        business_phone: businessPhone || null
+                    },
+                    { where: { id: userId }, transaction }
+                );
 
                 await transaction.commit();
 
@@ -105,12 +117,23 @@ class SubscriptionController {
                     data: result,
                 };
             } else {
+                // Lưu trước thông tin doanh nghiệp
+                await db.User.update(
+                    {
+                        business_name: businessName || null,
+                        business_phone: businessPhone || null
+                    },
+                    { where: { id: userId }, transaction }
+                );
+
                 const newSub = await db.UserSubscription.create({
                     user_id: userId,
                     package_id: pkg.id,
                     start_date: startDate,
                     end_date: endDate,
                     status: 'pending',
+                    created_at: startDate,
+                    updated_at: startDate
                 }, { transaction });
 
                 await transaction.commit();

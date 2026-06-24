@@ -18,6 +18,8 @@ const toUserResponse = (user) => ({
     email: user.email,
     role: user.role,
     avatar: user.avatar,
+    business_name: user.business_name,
+    business_phone: user.business_phone,
     created_at: user.created_at,
 });
 

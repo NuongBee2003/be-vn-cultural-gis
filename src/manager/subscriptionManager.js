@@ -80,7 +80,7 @@ class SubscriptionManager {
             throw new HttpError(401, 'Yêu cầu đăng nhập');
         }
 
-        const { packageId } = req.body;
+        const { packageId, businessName, businessPhone } = req.body;
         if (!packageId) {
             throw new HttpError(400, 'packageId là bắt buộc');
         }
@@ -92,7 +92,9 @@ class SubscriptionManager {
             userId,
             packageId,
             ipAddr,
-            returnUrl
+            returnUrl,
+            businessName,
+            businessPhone
         });
 
         if (!result.isPaid) {
@@ -124,20 +126,20 @@ class SubscriptionManager {
         if (!result.isValid) {
             // eslint-disable-next-line no-console
             console.error('VNPAY Signature Verification Failed');
-            return res.redirect(`${frontendUrl}business/payment-result?status=fail&message=${result.message}`);
+            return res.redirect(`${frontendUrl}payment-result?status=fail&message=${result.message}`);
         }
 
         if (result.status === 'success') {
             // eslint-disable-next-line no-console
             console.log(`Activated sub ${result.subscriptionId} and upgraded user ${result.userId} to business`);
-            return res.redirect(`${frontendUrl}business/payment-result?status=success`);
+            return res.redirect(`${frontendUrl}payment-result?status=success`);
         } else {
             // eslint-disable-next-line no-console
             console.log(`VNPAY transaction failed`);
             if (result.message) {
-                return res.redirect(`${frontendUrl}business/payment-result?status=fail&message=${result.message}`);
+                return res.redirect(`${frontendUrl}payment-result?status=fail&message=${result.message}`);
             } else {
-                return res.redirect(`${frontendUrl}business/payment-result?status=fail&code=${result.code}`);
+                return res.redirect(`${frontendUrl}payment-result?status=fail&code=${result.code}`);
             }
         }
     });

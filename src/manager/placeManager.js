@@ -14,8 +14,9 @@ class PlaceManager {
             const limit = Number(req.query.limit) || 20;
             const categoryId = req.query.categoryId ? Number(req.query.categoryId) : null;
             const query = req.query.query || '';
+            const userId = req.query.userId ? Number(req.query.userId) : null;
 
-            const result = await placeController.getAllPlacesPaginated({ page, limit, categoryId, query });
+            const result = await placeController.getAllPlacesPaginated({ page, limit, categoryId, query, userId });
             const totalPages = Math.ceil(result.count / result.limit);
 
             return sendSuccess(res, {

@@ -138,7 +138,7 @@ class ProductController {
       price: price !== undefined ? price : product.price,
       image_url: image_url !== undefined ? image_url : product.image_url,
       affiliate_url: affiliate_url !== undefined ? affiliate_url : product.affiliate_url,
-      updated_at: new Date()
+      updated_at: db.sequelize.literal('CURRENT_TIMESTAMP(3)')
     });
 
     return product;

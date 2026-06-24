@@ -15,7 +15,7 @@ class PlaceController {
         return db.Place.findAll();
     }
 
-    async getAllPlacesPaginated({ page = 1, limit = 20, categoryId = null, query = '' }) {
+    async getAllPlacesPaginated({ page = 1, limit = 20, categoryId = null, query = '', userId = null }) {
         const parsedPage = this.parsePositiveInt(page, 'page');
         const parsedLimit = this.parsePositiveInt(limit, 'limit');
         const offset = (parsedPage - 1) * parsedLimit;
@@ -23,6 +23,10 @@ class PlaceController {
         const where = {};
         if (categoryId) {
             where.category_id = this.parsePositiveInt(categoryId, 'categoryId');
+        }
+
+        if (userId) {
+            where.user_id = this.parsePositiveInt(userId, 'userId');
         }
 
         if (query && query.trim()) {

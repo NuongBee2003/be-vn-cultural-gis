@@ -21,11 +21,11 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: 0.00
     },
     image_url: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.TEXT,
       allowNull: true
     },
     affiliate_url: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.TEXT,
       allowNull: true
     },
     user_id: {
@@ -38,13 +38,11 @@ module.exports = function(sequelize, DataTypes) {
     },
     created_at: {
       type: DataTypes.DATE(3),
-      allowNull: false,
-      defaultValue: "CURRENT_TIMESTAMP(3)"
+      allowNull: true
     },
     updated_at: {
       type: DataTypes.DATE(3),
-      allowNull: false,
-      defaultValue: "CURRENT_TIMESTAMP(3)"
+      allowNull: true
     }
   }, {
     sequelize,
