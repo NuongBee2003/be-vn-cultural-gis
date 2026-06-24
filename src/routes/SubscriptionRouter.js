@@ -1,6 +1,6 @@
 const express = require('express');
 const route = express.Router();
-const subscriptionController = require('../controller/SubscriptionController');
+const subscriptionManager = require('../manager/subscriptionManager');
 const { requireAuth, requireRole } = require('../middleware');
 
 /**
@@ -72,7 +72,7 @@ const { requireAuth, requireRole } = require('../middleware');
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-route.get('/my-active', requireAuth, (req, res) => subscriptionController.getMyActive(req, res));
+route.get('/my-active', requireAuth, subscriptionManager.getMyActive);
 
 /**
  * @openapi
@@ -108,7 +108,7 @@ route.get('/my-active', requireAuth, (req, res) => subscriptionController.getMyA
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-route.get('/my-history', requireAuth, (req, res) => subscriptionController.getMyHistory(req, res));
+route.get('/my-history', requireAuth, subscriptionManager.getMyHistory);
 
 /**
  * @openapi
@@ -167,7 +167,7 @@ route.get('/my-history', requireAuth, (req, res) => subscriptionController.getMy
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-route.get('/admin/all', requireAuth, requireRole('admin'), (req, res) => subscriptionController.getAllAdmin(req, res));
+route.get('/admin/all', requireAuth, requireRole('admin'), subscriptionManager.getAllAdmin);
 
 /**
  * @openapi
@@ -229,7 +229,7 @@ route.get('/admin/all', requireAuth, requireRole('admin'), (req, res) => subscri
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-route.post('/subscribe', requireAuth, (req, res) => subscriptionController.subscribe(req, res));
+route.post('/subscribe', requireAuth, subscriptionManager.subscribe);
 
 /**
  * @openapi
@@ -268,7 +268,7 @@ route.post('/subscribe', requireAuth, (req, res) => subscriptionController.subsc
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-route.post('/cancel', requireAuth, (req, res) => subscriptionController.cancel(req, res));
+route.post('/cancel', requireAuth, subscriptionManager.cancel);
 
 /**
  * @openapi
@@ -282,6 +282,6 @@ route.post('/cancel', requireAuth, (req, res) => subscriptionController.cancel(r
  *       302:
  *         description: Redirect về màn hình kết quả trên Frontend
  */
-route.get('/vnpay-return', (req, res) => subscriptionController.vnpayReturn(req, res));
+route.get('/vnpay-return', subscriptionManager.vnpayReturn);
 
 module.exports = route;

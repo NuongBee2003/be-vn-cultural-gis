@@ -1,10 +1,10 @@
 const express = require('express');
-const SettingController = require('../controller/SettingController');
+const settingManager = require('../manager/settingManager');
 const { requireAuth, requireRole } = require('../middleware');
 const SettingRoute = express.Router();
 
-SettingRoute.get('/', SettingController.getAllSettings);
+SettingRoute.get('/', settingManager.getAllSettings);
 
-SettingRoute.put('/', requireAuth, requireRole('admin'), SettingController.updateSettingsBulk);
+SettingRoute.put('/', requireAuth, requireRole('admin'), settingManager.updateSettingsBulk);
 
 module.exports = SettingRoute;

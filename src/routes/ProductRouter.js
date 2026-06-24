@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const productController = require('../controller/ProductController');
+const productManager = require('../manager/productManager');
 const { requireAuth, requireRole } = require('../middleware');
 
 /**
@@ -38,7 +38,7 @@ const { requireAuth, requireRole } = require('../middleware');
  *       200:
  *         description: Thành công
  */
-router.get('/', (req, res) => productController.getAll(req, res));
+router.get('/', productManager.getAll);
 
 /**
  * @openapi
@@ -61,7 +61,7 @@ router.get('/', (req, res) => productController.getAll(req, res));
  *       404:
  *         description: Không tìm thấy sản phẩm
  */
-router.get('/:id', (req, res) => productController.getDetail(req, res));
+router.get('/:id', productManager.getDetail);
 
 /**
  * @openapi
@@ -103,7 +103,7 @@ router.get('/:id', (req, res) => productController.getDetail(req, res));
  *       403:
  *         description: Vượt quá giới hạn gói hoặc không có quyền
  */
-router.post('/', requireAuth, requireRole('admin', 'business'), (req, res) => productController.create(req, res));
+router.post('/', requireAuth, requireRole('admin', 'business'), productManager.create);
 
 /**
  * @openapi
@@ -146,7 +146,7 @@ router.post('/', requireAuth, requireRole('admin', 'business'), (req, res) => pr
  *       404:
  *         description: Không tìm thấy sản phẩm
  */
-router.put('/:id', requireAuth, requireRole('admin', 'business'), (req, res) => productController.update(req, res));
+router.put('/:id', requireAuth, requireRole('admin', 'business'), productManager.update);
 
 /**
  * @openapi
@@ -172,6 +172,6 @@ router.put('/:id', requireAuth, requireRole('admin', 'business'), (req, res) => 
  *       404:
  *         description: Không tìm thấy sản phẩm
  */
-router.delete('/:id', requireAuth, requireRole('admin', 'business'), (req, res) => productController.delete(req, res));
+router.delete('/:id', requireAuth, requireRole('admin', 'business'), productManager.delete);
 
 module.exports = router;

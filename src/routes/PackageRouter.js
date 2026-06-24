@@ -1,6 +1,6 @@
 const express = require('express');
 const route = express.Router();
-const packageController = require('../controller/PackageController');
+const packageManager = require('../manager/packageManager');
 const { requireAuth, requireRole } = require('../middleware');
 
 /**
@@ -27,7 +27,7 @@ const { requireAuth, requireRole } = require('../middleware');
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-route.get('/', packageController.getAllPackages);
+route.get('/', packageManager.getAllPackages);
 
 /**
  * @openapi
@@ -62,7 +62,7 @@ route.get('/', packageController.getAllPackages);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-route.get('/:id', packageController.getPackageById);
+route.get('/:id', packageManager.getPackageById);
 
 /**
  * @openapi
@@ -136,7 +136,7 @@ route.get('/:id', packageController.getPackageById);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-route.post('/', requireAuth, requireRole('admin'), packageController.createPackage);
+route.post('/', requireAuth, requireRole('admin'), packageManager.createPackage);
 
 /**
  * @openapi
@@ -190,7 +190,7 @@ route.post('/', requireAuth, requireRole('admin'), packageController.createPacka
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-route.put('/:id', requireAuth, requireRole('admin'), packageController.updatePackage);
+route.put('/:id', requireAuth, requireRole('admin'), packageManager.updatePackage);
 
 /**
  * @openapi
@@ -238,6 +238,6 @@ route.put('/:id', requireAuth, requireRole('admin'), packageController.updatePac
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-route.delete('/:id', requireAuth, requireRole('admin'), packageController.deletePackage);
+route.delete('/:id', requireAuth, requireRole('admin'), packageManager.deletePackage);
 
 module.exports = route;
