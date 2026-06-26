@@ -26,7 +26,7 @@ module.exports = function(sequelize, DataTypes) {
     start_date: {
       type: DataTypes.DATE(3),
       allowNull: true,
-      defaultValue: "CURRENT_TIMESTAMP(3)"
+      defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP(3)')
     },
     end_date: {
       type: DataTypes.DATE(3),
@@ -40,12 +40,12 @@ module.exports = function(sequelize, DataTypes) {
     created_at: {
       type: DataTypes.DATE(3),
       allowNull: true,
-      defaultValue: "CURRENT_TIMESTAMP(3)"
+      defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP(3)')
     },
     updated_at: {
       type: DataTypes.DATE(3),
       allowNull: true,
-      defaultValue: "CURRENT_TIMESTAMP(3)"
+      defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP(3)')
     }
   }, {
     sequelize,

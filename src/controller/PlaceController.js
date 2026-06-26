@@ -223,11 +223,22 @@ class PlaceController {
             throw err;
         }
 
+        let finalCategoryId = category_id;
+        if (!finalCategoryId) {
+            const otherCat = await db.Category.findOne({
+                where: { name: 'Khác' },
+                transaction
+            });
+            if (otherCat) {
+                finalCategoryId = otherCat.id;
+            }
+        }
+
         return db.Place.create(
             {
                 name,
                 description,
-                category_id,
+                category_id: finalCategoryId,
                 user_id: user_id || null,
             },
             transaction ? { transaction } : undefined
@@ -250,7 +261,20 @@ class PlaceController {
         const updates = {};
         if (name !== undefined) updates.name = name;
         if (description !== undefined) updates.description = description;
-        if (category_id !== undefined) updates.category_id = category_id;
+        
+        if (category_id !== undefined) {
+            let finalCategoryId = category_id;
+            if (!finalCategoryId) {
+                const otherCat = await db.Category.findOne({
+                    where: { name: 'Khác' },
+                    transaction
+                });
+                if (otherCat) {
+                    finalCategoryId = otherCat.id;
+                }
+            }
+            updates.category_id = finalCategoryId;
+        }
 
         updates.updated_at = db.sequelize.literal('CURRENT_TIMESTAMP(3)');
 

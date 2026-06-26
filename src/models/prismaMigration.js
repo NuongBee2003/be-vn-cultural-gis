@@ -29,7 +29,7 @@ module.exports = function(sequelize, DataTypes) {
     started_at: {
       type: DataTypes.DATE(3),
       allowNull: false,
-      defaultValue: "CURRENT_TIMESTAMP(3)"
+      defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP(3)')
     },
     applied_steps_count: {
       type: DataTypes.INTEGER.UNSIGNED,
