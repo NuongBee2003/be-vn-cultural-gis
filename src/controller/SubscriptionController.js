@@ -67,6 +67,20 @@ class SubscriptionController {
                 throw err;
             }
 
+            const currentSub = await this.getActiveSubscription(userId);
+            if (currentSub && currentSub.package) {
+                if (Number(pkg.price) < Number(currentSub.package.price)) {
+                    const err = new Error('Bạn đang sử dụng gói dịch vụ cao hơn, không thể hạ cấp gói!');
+                    err.statusCode = 400;
+                    throw err;
+                }
+                if (pkg.id === currentSub.package.id) {
+                    const err = new Error('Bạn đang sử dụng gói dịch vụ này!');
+                    err.statusCode = 400;
+                    throw err;
+                }
+            }
+
             const startDate = new Date();
             const endDate = new Date(startDate);
             endDate.setDate(endDate.getDate() + pkg.duration_days);
@@ -184,7 +198,13 @@ class SubscriptionController {
         if (responseCode === '00' && transactionStatus === '00') {
             const transaction = await db.sequelize.transaction();
             try {
-                const sub = await db.UserSubscription.findByPk(subId, { transaction });
+                const sub = await db.UserSubscription.findByPk(subId, {
+                    include: [{
+                        model: db.Package,
+                        as: 'package'
+                    }],
+                    transaction
+                });
                 if (!sub) {
                     await transaction.rollback();
                     return {
@@ -222,6 +242,41 @@ class SubscriptionController {
                     { where: { id: sub.user_id }, transaction }
                 );
 
+                // 4. Tạo hóa đơn thanh toán thành công
+                const rawAmount = queryParams['vnp_Amount'];
+                const amount = rawAmount ? Number(rawAmount) / 100 : 0;
+                
+                let paymentDate = null;
+                const vnpPayDate = queryParams['vnp_PayDate'];
+                if (vnpPayDate && vnpPayDate.length === 14) {
+                    try {
+                        const year = parseInt(vnpPayDate.substring(0, 4), 10);
+                        const month = parseInt(vnpPayDate.substring(4, 6), 10) - 1;
+                        const day = parseInt(vnpPayDate.substring(6, 8), 10);
+                        const hour = parseInt(vnpPayDate.substring(8, 10), 10);
+                        const minute = parseInt(vnpPayDate.substring(10, 12), 10);
+                        const second = parseInt(vnpPayDate.substring(12, 14), 10);
+                        paymentDate = new Date(year, month, day, hour, minute, second);
+                    } catch (e) {
+                        paymentDate = new Date();
+                    }
+                } else {
+                    paymentDate = new Date();
+                }
+
+                await db.Invoice.create({
+                    user_id: sub.user_id,
+                    subscription_id: sub.id,
+                    amount: amount,
+                    payment_gateway: 'vnpay',
+                    transaction_no: queryParams['vnp_TransactionNo'] || null,
+                    bank_code: queryParams['vnp_BankCode'] || null,
+                    card_type: queryParams['vnp_CardType'] || null,
+                    order_info: queryParams['vnp_OrderInfo'] || `Thanh toán đăng ký gói ${sub.package?.name || ''}`,
+                    status: 'success',
+                    payment_date: paymentDate
+                }, { transaction });
+
                 await transaction.commit();
                 return {
                     isValid: true,
@@ -236,6 +291,54 @@ class SubscriptionController {
                 throw err;
             }
         } else {
+            try {
+                const sub = await db.UserSubscription.findByPk(subId, {
+                    include: [{
+                        model: db.Package,
+                        as: 'package'
+                    }]
+                });
+
+                if (sub) {
+                    const rawAmount = queryParams['vnp_Amount'];
+                    const amount = rawAmount ? Number(rawAmount) / 100 : 0;
+                    
+                    let paymentDate = null;
+                    const vnpPayDate = queryParams['vnp_PayDate'];
+                    if (vnpPayDate && vnpPayDate.length === 14) {
+                        try {
+                            const year = parseInt(vnpPayDate.substring(0, 4), 10);
+                            const month = parseInt(vnpPayDate.substring(4, 6), 10) - 1;
+                            const day = parseInt(vnpPayDate.substring(6, 8), 10);
+                            const hour = parseInt(vnpPayDate.substring(8, 10), 10);
+                            const minute = parseInt(vnpPayDate.substring(10, 12), 10);
+                            const second = parseInt(vnpPayDate.substring(12, 14), 10);
+                            paymentDate = new Date(year, month, day, hour, minute, second);
+                        } catch (e) {
+                            paymentDate = new Date();
+                        }
+                    } else {
+                        paymentDate = new Date();
+                    }
+
+                    await db.Invoice.create({
+                        user_id: sub.user_id,
+                        subscription_id: sub.id,
+                        amount: amount,
+                        payment_gateway: 'vnpay',
+                        transaction_no: queryParams['vnp_TransactionNo'] || null,
+                        bank_code: queryParams['vnp_BankCode'] || null,
+                        card_type: queryParams['vnp_CardType'] || null,
+                        order_info: queryParams['vnp_OrderInfo'] || `Thanh toán đăng ký gói ${sub.package?.name || ''}`,
+                        status: 'failed',
+                        payment_date: paymentDate
+                    });
+                }
+            } catch (invoiceErr) {
+                // eslint-disable-next-line no-console
+                console.error('Error logging failed invoice:', invoiceErr);
+            }
+
             try {
                 await db.UserSubscription.update(
                     { status: 'cancelled', updated_at: db.sequelize.literal('CURRENT_TIMESTAMP(3)') },

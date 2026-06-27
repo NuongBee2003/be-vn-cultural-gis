@@ -86,7 +86,10 @@ class SubscriptionManager {
         }
 
         const ipAddr = req.ip || req.headers['x-forwarded-for'] || '127.0.0.1';
-        const returnUrl = process.env.VNP_RETURN_URL || 'http://localhost:3002/api/v1/subscription/vnpay-return';
+
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+        const host = req.get('host');
+        const returnUrl = `${protocol}://${host}/api/v1/subscription/vnpay-return`;
 
         const result = await subscriptionController.subscribe({
             userId,

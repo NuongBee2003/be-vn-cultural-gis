@@ -24,6 +24,8 @@ var _Setting = require("./setting");
 var _UserSubscription = require("./userSubscription");
 var _User = require("./user");
 var _Wishlist = require("./wishlist");
+var _Invoice = require("./invoice");
+
 
 function initModels(sequelize) {
   var PrismaMigration = _PrismaMigration(sequelize, DataTypes);
@@ -51,6 +53,8 @@ function initModels(sequelize) {
   var UserSubscription = _UserSubscription(sequelize, DataTypes);
   var User = _User(sequelize, DataTypes);
   var Wishlist = _Wishlist(sequelize, DataTypes);
+  var Invoice = _Invoice(sequelize, DataTypes);
+
 
   Post.belongsToMany(User, { as: 'user_id_users', through: PostLike, foreignKey: "post_id", otherKey: "user_id" });
   Review.belongsToMany(User, { as: 'user_id_users_review_likes', through: ReviewLike, foreignKey: "review_id", otherKey: "user_id" });
@@ -117,6 +121,12 @@ function initModels(sequelize) {
   Wishlist.belongsTo(User, { as: "user", foreignKey: "user_id"});
   User.hasMany(Wishlist, { as: "wishlists", foreignKey: "user_id"});
 
+  Invoice.belongsTo(User, { as: "user", foreignKey: "user_id"});
+  User.hasMany(Invoice, { as: "invoices", foreignKey: "user_id"});
+  Invoice.belongsTo(UserSubscription, { as: "subscription", foreignKey: "subscription_id"});
+  UserSubscription.hasMany(Invoice, { as: "invoices", foreignKey: "subscription_id"});
+
+
   return {
     PrismaMigration,
     Asset,
@@ -143,6 +153,7 @@ function initModels(sequelize) {
     UserSubscription,
     User,
     Wishlist,
+    Invoice,
   };
 }
 module.exports = initModels;

@@ -1,8 +1,9 @@
 const jwt = require("jsonwebtoken");
+const db = require("../models");
 
 const getSecret = () => process.env.JWT_SECRET;
 
-function requireAuth(req, res, next) {
+async function requireAuth(req, res, next) {
     const secret = getSecret();
     if (!secret) {
         return res
@@ -21,8 +22,23 @@ function requireAuth(req, res, next) {
 
     try {
         const decoded = jwt.verify(token, secret);
-        req.user = decoded;
-        req.userId = (decoded && (decoded.userId || decoded.id)) || undefined;
+        const userId = (decoded && (decoded.userId || decoded.id)) || undefined;
+        
+        req.userId = userId;
+        req.user = decoded; // default fallback
+        
+        if (userId) {
+            const dbUser = await db.User.findByPk(userId);
+            if (dbUser) {
+                req.user = {
+                    ...decoded,
+                    ...dbUser.get({ plain: true }),
+                    id: dbUser.id,
+                    role: dbUser.role
+                };
+            }
+        }
+        
         return next();
     } catch (err) {
         if (err && err.name === "TokenExpiredError") {

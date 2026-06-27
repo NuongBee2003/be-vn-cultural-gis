@@ -49,5 +49,6 @@ route.get('/', UserManager.getAll);
  *       404:
  *         description: User not found
  */
+route.get('/me', requireAuth, UserManager.getMe);
 route.put('/me', requireAuth, UserManager.updateMe);
 module.exports = route;

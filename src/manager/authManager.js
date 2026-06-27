@@ -20,20 +20,26 @@ class AuthManager {
                 return res.status(500).json({ message: 'Server misconfigured: JWT_SECRET is missing' });
             }
 
-            const { username, email, password, avatar } = req.body || {};
-            if (!username || !email || !password) {
+            const { username, email, password, avatar, phone } = req.body || {};
+            if (!username || !email || !password || !phone) {
                 return res
                     .status(400)
-                    .json({ message: 'Username, email, and password are required' });
+                    .json({ message: 'Vui lòng điền đầy đủ họ tên, email, mật khẩu và số điện thoại' });
             }
 
             if (!isValidEmail(email)) {
-                return res.status(400).json({ message: 'Invalid email format' });
+                return res.status(400).json({ message: 'Email không đúng định dạng' });
+            }
+
+            // Validate phone: 10 digits starting with 0
+            const phoneRegex = /^0\d{9}$/;
+            if (!phoneRegex.test(phone)) {
+                return res.status(400).json({ message: 'Số điện thoại phải gồm 10 chữ số và bắt đầu bằng số 0' });
             }
 
             const existingUser = await userController.getUserByEmail(email);
             if (existingUser) {
-                return res.status(409).json({ message: 'Email already in use' });
+                return res.status(409).json({ message: 'Email đã được sử dụng' });
             }
 
             const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
@@ -42,6 +48,7 @@ class AuthManager {
                 email,
                 password_hash: passwordHash,
                 avatar,
+                business_phone: phone,
             });
 
             const token = signAuthToken(createdUser, secret, getExpiresIn());

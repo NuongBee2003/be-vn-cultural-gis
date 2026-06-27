@@ -77,6 +77,33 @@ async function run() {
       console.error('❌ Error setting package limits:', err.message);
     }
 
+    // 5. Create invoices table
+    console.log('Creating invoices table...');
+    try {
+      await sequelize.query(`
+        CREATE TABLE IF NOT EXISTS invoices (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          user_id INT NOT NULL,
+          subscription_id INT NOT NULL,
+          amount DECIMAL(15,2) NOT NULL,
+          payment_gateway VARCHAR(50) NOT NULL DEFAULT 'vnpay',
+          transaction_no VARCHAR(100) NULL,
+          bank_code VARCHAR(50) NULL,
+          card_type VARCHAR(50) NULL,
+          order_info TEXT NULL,
+          status VARCHAR(20) NOT NULL DEFAULT 'pending',
+          payment_date TIMESTAMP(3) NULL,
+          created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+          updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+          FOREIGN KEY (subscription_id) REFERENCES user_subscriptions(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+      `);
+      console.log('✅ Created invoices table successfully.');
+    } catch (err) {
+      console.error('❌ Error creating invoices table:', err.message);
+    }
+
   } catch (error) {
     console.error('Database query failed:', error);
   } finally {
