@@ -43,7 +43,7 @@ class HolidayController {
                         ]
                     }
                 ],
-                order: [['id', 'ASC']]
+                order: [['id', 'DESC']]
             };
 
             if (page) {
