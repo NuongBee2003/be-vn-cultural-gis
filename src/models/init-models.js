@@ -10,6 +10,7 @@ var _Custom = require("./custom");
 var _Exhibition = require("./exhibition");
 var _FolkArt = require("./folkArt");
 var _Holiday = require("./holiday");
+var _HolidayPlace = require("./holidayPlace");
 var _Location = require("./location");
 var _Notification = require("./notification");
 var _Package = require("./package");
@@ -39,6 +40,7 @@ function initModels(sequelize) {
   var Exhibition = _Exhibition(sequelize, DataTypes);
   var FolkArt = _FolkArt(sequelize, DataTypes);
   var Holiday = _Holiday(sequelize, DataTypes);
+  var HolidayPlace = _HolidayPlace(sequelize, DataTypes);
   var Location = _Location(sequelize, DataTypes);
   var Notification = _Notification(sequelize, DataTypes);
   var Package = _Package(sequelize, DataTypes);
@@ -68,6 +70,8 @@ function initModels(sequelize) {
   Comment.hasMany(Notification, { as: "notifications", foreignKey: "comment_id"});
   CuisinePlace.belongsTo(Cuisine, { as: "cuisine", foreignKey: "cuisine_id"});
   Cuisine.hasMany(CuisinePlace, { as: "cuisine_places", foreignKey: "cuisine_id"});
+  Holiday.hasMany(HolidayPlace, { as: "holiday_places", foreignKey: "holiday_id"});
+  HolidayPlace.belongsTo(Holiday, { as: "holiday", foreignKey: "holiday_id"});
   Asset.belongsTo(Location, { as: "location", foreignKey: "location_id"});
   Location.hasMany(Asset, { as: "assets", foreignKey: "location_id"});
   CheckIn.belongsTo(Location, { as: "location", foreignKey: "location_id"});
@@ -80,6 +84,8 @@ function initModels(sequelize) {
   Package.hasMany(UserSubscription, { as: "user_subscriptions", foreignKey: "package_id"});
   CuisinePlace.belongsTo(Place, { as: "place", foreignKey: "place_id"});
   Place.hasMany(CuisinePlace, { as: "cuisine_places", foreignKey: "place_id"});
+  HolidayPlace.belongsTo(Place, { as: "place", foreignKey: "place_id"});
+  Place.hasMany(HolidayPlace, { as: "holiday_places", foreignKey: "place_id"});
   Location.belongsTo(Place, { as: "place", foreignKey: "place_id"});
   Place.hasMany(Location, { as: "locations", foreignKey: "place_id"});
   Asset.belongsTo(Post, { as: "post", foreignKey: "post_id"});
@@ -139,6 +145,7 @@ function initModels(sequelize) {
     Exhibition,
     FolkArt,
     Holiday,
+    HolidayPlace,
     Location,
     Notification,
     Package,

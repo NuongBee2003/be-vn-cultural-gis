@@ -42,11 +42,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: true,
       comment: "Mảng chuỗi các hoạt động (JSON array of strings)"
     },
-    destinations: {
-      type: DataTypes.JSON,
-      allowNull: true,
-      comment: "Mảng địa điểm (JSON array of objects: [{\"name\": \"\", \"reason\": \"\"}])"
-    },
+
     foods: {
       type: DataTypes.JSON,
       allowNull: true,

@@ -113,7 +113,23 @@ class LocationController {
   }
 
   async getLocationById(id) {
-    return Location.findByPk(id);
+    return Location.findByPk(id, {
+      include: [
+        {
+          model: db.Place,
+          as: "place",
+          attributes: ["id", "name", "description", "category_id"],
+          include: [
+            {
+              model: db.Category,
+              as: "category",
+              attributes: ["id", "name", "icon_marker", "color"],
+              required: false,
+            },
+          ],
+        },
+      ],
+    });
   }
 
   async deleteLocation(location) {
