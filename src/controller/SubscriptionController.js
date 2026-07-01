@@ -81,6 +81,13 @@ class SubscriptionController {
                 }
             }
 
+            const user = await db.User.findByPk(userId, { transaction });
+            if (!user) {
+                const err = new Error('Không tìm thấy người dùng');
+                err.statusCode = 404;
+                throw err;
+            }
+
             const startDate = new Date();
             const endDate = new Date(startDate);
             endDate.setDate(endDate.getDate() + pkg.duration_days);
@@ -105,10 +112,11 @@ class SubscriptionController {
                     updated_at: startDate
                 }, { transaction });
 
-                // Nâng cấp role của user thành 'business' và lưu thông tin doanh nghiệp
+                // Nâng cấp role của user thành 'business' (nếu không phải admin) và lưu thông tin doanh nghiệp
+                const nextRole = user.role === 'admin' ? 'admin' : 'business';
                 await db.User.update(
                     {
-                        role: 'business',
+                        role: nextRole,
                         business_name: businessName || null,
                         business_phone: businessPhone || null
                     },
@@ -199,10 +207,16 @@ class SubscriptionController {
             const transaction = await db.sequelize.transaction();
             try {
                 const sub = await db.UserSubscription.findByPk(subId, {
-                    include: [{
-                        model: db.Package,
-                        as: 'package'
-                    }],
+                    include: [
+                        {
+                            model: db.Package,
+                            as: 'package'
+                        },
+                        {
+                            model: db.User,
+                            as: 'user'
+                        }
+                    ],
                     transaction
                 });
                 if (!sub) {
@@ -236,11 +250,13 @@ class SubscriptionController {
                 sub.updated_at = new Date();
                 await sub.save({ transaction });
 
-                // 3. Nâng cấp role của user thành 'business'
-                await db.User.update(
-                    { role: 'business' },
-                    { where: { id: sub.user_id }, transaction }
-                );
+                // 3. Nâng cấp role của user thành 'business' (nếu không phải admin)
+                if (sub.user && sub.user.role !== 'admin') {
+                    await db.User.update(
+                        { role: 'business' },
+                        { where: { id: sub.user_id }, transaction }
+                    );
+                }
 
                 // 4. Tạo hóa đơn thanh toán thành công
                 const rawAmount = queryParams['vnp_Amount'];
