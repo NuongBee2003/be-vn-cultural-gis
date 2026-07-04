@@ -15,8 +15,12 @@ class PlaceManager {
             const categoryId = req.query.categoryId ? Number(req.query.categoryId) : null;
             const query = req.query.query || '';
             const userId = req.query.userId ? Number(req.query.userId) : null;
+            let isFeatured = null;
+            if (req.query.isFeatured !== undefined) {
+                isFeatured = req.query.isFeatured === 'true' || req.query.isFeatured === '1';
+            }
 
-            const result = await placeController.getAllPlacesPaginated({ page, limit, categoryId, query, userId });
+            const result = await placeController.getAllPlacesPaginated({ page, limit, categoryId, query, userId, isFeatured });
             const totalPages = Math.ceil(result.count / result.limit);
 
             return sendSuccess(res, {
@@ -65,8 +69,13 @@ class PlaceManager {
                 throw err;
             }
 
-            // Kiểm tra giới hạn số địa điểm (trừ admin)
-            if (userRole !== 'admin' && userId) {
+            // Xác định xem địa điểm mới có nổi bật hay không và kiểm tra giới hạn số địa điểm
+            let isFeatured = 0;
+            if (userRole === 'admin') {
+                isFeatured = req.body.is_featured ? 1 : 0;
+            }
+
+            if (userId) {
                 const { Op } = require('sequelize');
                 const now = new Date();
 
@@ -84,35 +93,42 @@ class PlaceManager {
                     order: [['created_at', 'DESC']],
                 });
 
-                // Giới hạn mặc định nếu không có gói: 0 (Free)
-                let maxPlaces = 0;
-                let packageName = 'Free';
-
-                if (activeSub && activeSub.package) {
-                    maxPlaces = activeSub.package.max_places;
-                    packageName = activeSub.package.name;
-                } else {
-                    // Lấy gói Free từ DB nếu có
-                    const freePkg = await db.Package.findOne({
-                        where: { price: 0.00 },
-                        order: [['max_places', 'ASC']],
-                    });
-                    if (freePkg) {
-                        maxPlaces = freePkg.max_places;
-                        packageName = freePkg.name;
-                    }
+                // Nếu có gói active và là gói trả phí (price > 0), tự động set nổi bật
+                if (activeSub && activeSub.package && Number(activeSub.package.price) > 0) {
+                    isFeatured = 1;
                 }
 
-                // Đếm số địa điểm user đã tạo
-                const currentCount = await db.Place.count({ where: { user_id: userId } });
+                if (userRole !== 'admin') {
+                    // Giới hạn mặc định nếu không có gói: 0 (Free)
+                    let maxPlaces = 0;
+                    let packageName = 'Free';
 
-                if (currentCount >= maxPlaces) {
-                    return res.status(403).json({
-                        message: `Bạn đã đạt giới hạn đăng địa điểm của gói "${packageName}" (Tối đa: ${maxPlaces} địa điểm). Vui lòng nâng cấp gói để tiếp tục.`,
-                        current_count: currentCount,
-                        max_places: maxPlaces,
-                        package_name: packageName,
-                    });
+                    if (activeSub && activeSub.package) {
+                        maxPlaces = activeSub.package.max_places;
+                        packageName = activeSub.package.name;
+                    } else {
+                        // Lấy gói Free từ DB nếu có
+                        const freePkg = await db.Package.findOne({
+                            where: { price: 0.00 },
+                            order: [['max_places', 'ASC']],
+                        });
+                        if (freePkg) {
+                            maxPlaces = freePkg.max_places;
+                            packageName = freePkg.name;
+                        }
+                    }
+
+                    // Đếm số địa điểm user đã tạo
+                    const currentCount = await db.Place.count({ where: { user_id: userId } });
+
+                    if (currentCount >= maxPlaces) {
+                        return res.status(403).json({
+                            message: `Bạn đã đạt giới hạn đăng địa điểm của gói "${packageName}" (Tối đa: ${maxPlaces} địa điểm). Vui lòng nâng cấp gói để tiếp tục.`,
+                            current_count: currentCount,
+                            max_places: maxPlaces,
+                            package_name: packageName,
+                        });
+                    }
                 }
             }
 
@@ -121,7 +137,7 @@ class PlaceManager {
                 transaction = await transactionController.begin();
 
                 const createdPlace = await placeController.createPlace(
-                    { ...req.body, user_id: userId || null },
+                    { ...req.body, user_id: userId || null, is_featured: isFeatured },
                     { transaction }
                 );
 

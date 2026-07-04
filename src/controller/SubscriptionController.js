@@ -123,6 +123,12 @@ class SubscriptionController {
                     { where: { id: userId }, transaction }
                 );
 
+                // Gói Free thì không nổi bật (is_featured = 0)
+                await db.Place.update(
+                    { is_featured: 0 },
+                    { where: { user_id: userId }, transaction }
+                );
+
                 await transaction.commit();
 
                 const result = await db.UserSubscription.findByPk(newSub.id, {
@@ -258,6 +264,12 @@ class SubscriptionController {
                     );
                 }
 
+                // Cập nhật is_featured = 1 cho các địa điểm của User vì đây là gói trả phí hoạt động
+                await db.Place.update(
+                    { is_featured: 1 },
+                    { where: { user_id: sub.user_id }, transaction }
+                );
+
                 // 4. Tạo hóa đơn thanh toán thành công
                 const rawAmount = queryParams['vnp_Amount'];
                 const amount = rawAmount ? Number(rawAmount) / 100 : 0;
@@ -372,9 +384,6 @@ class SubscriptionController {
         }
     }
 
-    /**
-     * Hủy gói đang active
-     */
     async cancel(userId) {
         const updated = await db.UserSubscription.update(
             { status: 'cancelled', updated_at: db.sequelize.literal('CURRENT_TIMESTAMP(3)') },
@@ -386,6 +395,12 @@ class SubscriptionController {
             err.statusCode = 404;
             throw err;
         }
+
+        // Hủy gói dịch vụ thì tắt trạng thái nổi bật (is_featured = 0)
+        await db.Place.update(
+            { is_featured: 0 },
+            { where: { user_id: userId } }
+        );
 
         return { success: true };
     }

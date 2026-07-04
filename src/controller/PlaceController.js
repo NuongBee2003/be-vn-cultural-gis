@@ -15,7 +15,7 @@ class PlaceController {
         return db.Place.findAll();
     }
 
-    async getAllPlacesPaginated({ page = 1, limit = 20, categoryId = null, query = '', userId = null }) {
+    async getAllPlacesPaginated({ page = 1, limit = 20, categoryId = null, query = '', userId = null, isFeatured = null }) {
         const parsedPage = this.parsePositiveInt(page, 'page');
         const parsedLimit = this.parsePositiveInt(limit, 'limit');
         const offset = (parsedPage - 1) * parsedLimit;
@@ -29,6 +29,10 @@ class PlaceController {
             where.user_id = this.parsePositiveInt(userId, 'userId');
         }
 
+        if (isFeatured !== null && isFeatured !== undefined) {
+            where.is_featured = isFeatured ? 1 : 0;
+        }
+
         if (query && query.trim()) {
             const { Op } = require('sequelize');
             const likePattern = `%${query.trim()}%`;
@@ -38,9 +42,51 @@ class PlaceController {
             ];
         }
 
+        const ratingAvgSubquery = `(
+            SELECT COALESCE(AVG(r.rating), 0)
+            FROM reviews r
+            JOIN locations l ON r.location_id = l.id
+            WHERE l.place_id = Place.id
+        )`;
+
+        const reviewCountSubquery = `(
+            SELECT COUNT(r.id)
+            FROM reviews r
+            JOIN locations l ON r.location_id = l.id
+            WHERE l.place_id = Place.id
+        )`;
+
+        // Tự động dọn dẹp trạng thái is_featured = 1 của các địa điểm thuộc User đã hết hạn gói dịch vụ
+        const { Op } = require('sequelize');
+        await db.Place.update(
+            { is_featured: 0 },
+            {
+                where: {
+                    is_featured: 1,
+                    user_id: {
+                        [Op.and]: [
+                            { [Op.ne]: null },
+                            {
+                                [Op.notIn]: db.sequelize.literal(`(
+                                    SELECT DISTINCT user_id 
+                                    FROM user_subscriptions 
+                                    WHERE status = 'active' 
+                                      AND (end_date IS NULL OR end_date > NOW())
+                                )`)
+                            }
+                        ]
+                    }
+                }
+            }
+        ).catch(() => {});
+
         const { count, rows } = await db.Place.findAndCountAll({
             where,
-            attributes: ['id', 'name', 'description', 'category_id', 'created_at', 'updated_at'],
+            attributes: [
+                'id', 'name', 'description', 'category_id', 'created_at', 'updated_at', 'is_featured', 'view_count',
+                [db.sequelize.literal(ratingAvgSubquery), 'rating_avg'],
+                [db.sequelize.literal(reviewCountSubquery), 'review_count']
+            ],
             include: [
                 {
                     model: db.Category,
@@ -69,7 +115,13 @@ class PlaceController {
             ],
             limit: parsedLimit,
             offset,
-            order: [['id', 'DESC']],
+            order: [
+                ['is_featured', 'DESC'],
+                [db.sequelize.literal(ratingAvgSubquery), 'DESC'],
+                ['view_count', 'DESC'],
+                [db.sequelize.literal(reviewCountSubquery), 'DESC'],
+                ['id', 'DESC']
+            ],
             distinct: true,
         });
 
@@ -107,7 +159,7 @@ class PlaceController {
     async getPlaceDetail(id) {
         const placeId = this.parsePositiveInt(id, 'id');
         const place = await db.Place.findByPk(placeId, {
-            attributes: ['id', 'name', 'description', 'category_id', 'created_at', 'updated_at'],
+            attributes: ['id', 'name', 'description', 'category_id', 'created_at', 'updated_at', 'is_featured', 'view_count'],
             include: [
                 {
                     model: db.Category,
@@ -176,7 +228,15 @@ class PlaceController {
             throw err;
         }
 
+        // Tăng số lượt xem (view_count)
+        await place.increment('view_count').catch(err => {
+            // eslint-disable-next-line no-console
+            console.error('Error incrementing view_count:', err);
+        });
+        place.view_count = (place.view_count || 0) + 1;
+
         const placeJson = place.toJSON();
+        placeJson.view_count = place.view_count;
         const reviews = [];
         const assets = [];
         for (const location of placeJson.locations || []) {
@@ -215,7 +275,7 @@ class PlaceController {
 
     async createPlace(payload, options = {}) {
         const { transaction } = options;
-        const { name, description, category_id, user_id } = payload || {};
+        const { name, description, category_id, user_id, is_featured } = payload || {};
 
         if (!name || typeof name !== 'string') {
             const err = new Error('name is required');
@@ -240,6 +300,7 @@ class PlaceController {
                 description,
                 category_id: finalCategoryId,
                 user_id: user_id || null,
+                is_featured: is_featured ? 1 : 0,
             },
             transaction ? { transaction } : undefined
         );
@@ -256,11 +317,12 @@ class PlaceController {
             throw err;
         }
 
-        const { name, description, category_id } = payload || {};
+        const { name, description, category_id, is_featured } = payload || {};
 
         const updates = {};
         if (name !== undefined) updates.name = name;
         if (description !== undefined) updates.description = description;
+        if (is_featured !== undefined) updates.is_featured = is_featured ? 1 : 0;
         
         if (category_id !== undefined) {
             let finalCategoryId = category_id;
