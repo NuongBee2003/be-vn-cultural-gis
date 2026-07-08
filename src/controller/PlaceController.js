@@ -16,9 +16,17 @@ class PlaceController {
     }
 
     async getAllPlacesPaginated({ page = 1, limit = 20, categoryId = null, query = '', userId = null, isFeatured = null }) {
-        const parsedPage = this.parsePositiveInt(page, 'page');
-        const parsedLimit = this.parsePositiveInt(limit, 'limit');
-        const offset = (parsedPage - 1) * parsedLimit;
+        const isFeaturedRequested = isFeatured === true || isFeatured === 'true' || isFeatured === 1 || isFeatured === '1';
+
+        let parsedPage = this.parsePositiveInt(page, 'page');
+        let parsedLimit = this.parsePositiveInt(limit, 'limit');
+        let offset = (parsedPage - 1) * parsedLimit;
+
+        if (isFeaturedRequested) {
+            parsedLimit = 200;
+            parsedPage = 1;
+            offset = 0;
+        }
 
         const where = {};
         if (categoryId) {
@@ -29,7 +37,7 @@ class PlaceController {
             where.user_id = this.parsePositiveInt(userId, 'userId');
         }
 
-        if (isFeatured !== null && isFeatured !== undefined) {
+        if (isFeatured !== null && isFeatured !== undefined && !isFeaturedRequested) {
             where.is_featured = isFeatured ? 1 : 0;
         }
 
@@ -80,6 +88,27 @@ class PlaceController {
             }
         ).catch(() => {});
 
+        let orderClause;
+        if (isFeaturedRequested) {
+            const popularityScoreExpression = `(
+                ((${ratingAvgSubquery} * ${reviewCountSubquery} + 15.0) / (${reviewCountSubquery} + 5)) 
+                + LOG10(Place.view_count + 1) * 0.1
+            )`;
+            orderClause = [
+                ['is_featured', 'DESC'],
+                [db.sequelize.literal(popularityScoreExpression), 'DESC'],
+                ['id', 'DESC']
+            ];
+        } else {
+            orderClause = [
+                ['is_featured', 'DESC'],
+                [db.sequelize.literal(ratingAvgSubquery), 'DESC'],
+                ['view_count', 'DESC'],
+                [db.sequelize.literal(reviewCountSubquery), 'DESC'],
+                ['id', 'DESC']
+            ];
+        }
+
         const { count, rows } = await db.Place.findAndCountAll({
             where,
             attributes: [
@@ -93,7 +122,7 @@ class PlaceController {
                     as: 'category',
                     attributes: ['id', 'name', 'icon_marker', 'color'],
                     required: false,
-                },
+                    },
                 {
                     model: db.Location,
                     as: 'locations',
@@ -115,19 +144,13 @@ class PlaceController {
             ],
             limit: parsedLimit,
             offset,
-            order: [
-                ['is_featured', 'DESC'],
-                [db.sequelize.literal(ratingAvgSubquery), 'DESC'],
-                ['view_count', 'DESC'],
-                [db.sequelize.literal(reviewCountSubquery), 'DESC'],
-                ['id', 'DESC']
-            ],
+            order: orderClause,
             distinct: true,
         });
 
         return {
             rows,
-            count,
+            count: isFeaturedRequested ? Math.min(count, 200) : count,
             page: parsedPage,
             limit: parsedLimit,
         };

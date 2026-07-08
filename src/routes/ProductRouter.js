@@ -103,7 +103,7 @@ router.get('/:id', productManager.getDetail);
  *       403:
  *         description: Vượt quá giới hạn gói hoặc không có quyền
  */
-router.post('/', requireAuth, requireRole('admin', 'business'), productManager.create);
+router.post('/', requireAuth, requireRole('admin'), productManager.create);
 
 /**
  * @openapi
@@ -146,7 +146,7 @@ router.post('/', requireAuth, requireRole('admin', 'business'), productManager.c
  *       404:
  *         description: Không tìm thấy sản phẩm
  */
-router.put('/:id', requireAuth, requireRole('admin', 'business'), productManager.update);
+router.put('/:id', requireAuth, requireRole('admin'), productManager.update);
 
 /**
  * @openapi
@@ -172,6 +172,6 @@ router.put('/:id', requireAuth, requireRole('admin', 'business'), productManager
  *       404:
  *         description: Không tìm thấy sản phẩm
  */
-router.delete('/:id', requireAuth, requireRole('admin', 'business'), productManager.delete);
+router.delete('/:id', requireAuth, requireRole('admin'), productManager.delete);
 
 module.exports = router;
