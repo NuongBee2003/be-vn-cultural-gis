@@ -16,4 +16,9 @@ route.get('/admin/all', requireAuth, requireRole('admin'), ReviewManager.getAllR
  */
 route.delete('/:reviewId', requireAuth, requireRole('admin'), placeManager.deleteReview);
 
+/**
+ * Thích/Bỏ thích đánh giá
+ */
+route.post('/:id/like', requireAuth, ReviewManager.toggleLike);
+
 module.exports = route;
