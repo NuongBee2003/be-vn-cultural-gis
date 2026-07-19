@@ -55,7 +55,7 @@ class ProductController {
   /**
    * Tạo sản phẩm mới (chỉ Business / Admin)
    */
-  async create({ userId, userRole, name, description, price, image_url, affiliate_url }) {
+  async create({ userId, userRole, name, description, price, image_url, affiliate_url, category }) {
     if (!name || price === undefined) {
       const err = new Error('Tên và giá sản phẩm là bắt buộc');
       err.statusCode = 400;
@@ -110,6 +110,7 @@ class ProductController {
       price,
       image_url,
       affiliate_url,
+      category: category || 'custom',
       user_id: userId
     });
   }
@@ -117,7 +118,7 @@ class ProductController {
   /**
    * Cập nhật sản phẩm
    */
-  async update(id, { userId, userRole, name, description, price, image_url, affiliate_url }) {
+  async update(id, { userId, userRole, name, description, price, image_url, affiliate_url, category }) {
     const product = await db.Product.findByPk(id);
     if (!product) {
       const err = new Error('Không tìm thấy sản phẩm');
@@ -138,6 +139,7 @@ class ProductController {
       price: price !== undefined ? price : product.price,
       image_url: image_url !== undefined ? image_url : product.image_url,
       affiliate_url: affiliate_url !== undefined ? affiliate_url : product.affiliate_url,
+      category: category !== undefined ? category : product.category,
       updated_at: db.sequelize.literal('CURRENT_TIMESTAMP(3)')
     });
 

@@ -53,7 +53,7 @@ class ProductManager {
       throw new HttpError(401, 'Yêu cầu đăng nhập');
     }
 
-    const { name, description, price, image_url, affiliate_url } = req.body;
+    const { name, description, price, image_url, affiliate_url, category } = req.body;
 
     const newProduct = await productController.create({
       userId,
@@ -62,7 +62,8 @@ class ProductManager {
       description,
       price,
       image_url,
-      affiliate_url
+      affiliate_url,
+      category
     });
 
     return sendSuccess(res, {
@@ -81,7 +82,7 @@ class ProductManager {
       throw new HttpError(400, 'ID sản phẩm không hợp lệ');
     }
 
-    const { name, description, price, image_url, affiliate_url } = req.body;
+    const { name, description, price, image_url, affiliate_url, category } = req.body;
 
     const updatedProduct = await productController.update(id, {
       userId,
@@ -90,7 +91,8 @@ class ProductManager {
       description,
       price,
       image_url,
-      affiliate_url
+      affiliate_url,
+      category
     });
 
     return sendSuccess(res, {

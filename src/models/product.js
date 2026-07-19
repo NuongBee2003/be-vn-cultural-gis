@@ -28,6 +28,11 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.TEXT,
       allowNull: true
     },
+    category: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      defaultValue: "custom"
+    },
     user_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
