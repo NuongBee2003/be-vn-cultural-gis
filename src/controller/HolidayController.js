@@ -5,7 +5,7 @@ const { Holiday } = db;
 class HolidayController {
     async getAllHolidays(req, res) {
         try {
-            const { page, limit, search } = req.query;
+            const { page, limit, search, category } = req.query;
 
             const whereClause = {};
             if (search) {
@@ -13,6 +13,9 @@ class HolidayController {
                     { name: { [Op.like]: `%${search}%` } },
                     { description: { [Op.like]: `%${search}%` } }
                 ];
+            }
+            if (category) {
+                whereClause.category = category;
             }
 
             const queryOptions = {
