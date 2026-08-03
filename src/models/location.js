@@ -26,6 +26,11 @@ module.exports = function(sequelize, DataTypes) {
     lng: {
       type: DataTypes.DECIMAL(11,8),
       allowNull: true
+    },
+    status: {
+      type: DataTypes.ENUM('active', 'closed'),
+      allowNull: true,
+      defaultValue: 'active'
     }
   }, {
     sequelize,

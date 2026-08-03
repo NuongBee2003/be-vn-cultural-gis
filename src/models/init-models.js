@@ -26,6 +26,7 @@ var _UserSubscription = require("./userSubscription");
 var _User = require("./user");
 var _Wishlist = require("./wishlist");
 var _Invoice = require("./invoice");
+var _Report = require("./report");
 
 
 function initModels(sequelize) {
@@ -56,6 +57,7 @@ function initModels(sequelize) {
   var User = _User(sequelize, DataTypes);
   var Wishlist = _Wishlist(sequelize, DataTypes);
   var Invoice = _Invoice(sequelize, DataTypes);
+  var Report = _Report(sequelize, DataTypes);
 
 
   Post.belongsToMany(User, { as: 'user_id_users', through: PostLike, foreignKey: "post_id", otherKey: "user_id" });
@@ -132,6 +134,13 @@ function initModels(sequelize) {
   Invoice.belongsTo(UserSubscription, { as: "subscription", foreignKey: "subscription_id"});
   UserSubscription.hasMany(Invoice, { as: "invoices", foreignKey: "subscription_id"});
 
+  Report.belongsTo(Location, { as: "location", foreignKey: "location_id"});
+  Location.hasMany(Report, { as: "reports", foreignKey: "location_id"});
+  Report.belongsTo(Comment, { as: "comment", foreignKey: "comment_id"});
+  Comment.hasMany(Report, { as: "reports", foreignKey: "comment_id"});
+  Report.belongsTo(User, { as: "user", foreignKey: "user_id"});
+  User.hasMany(Report, { as: "reports", foreignKey: "user_id"});
+
 
   return {
     PrismaMigration,
@@ -161,6 +170,7 @@ function initModels(sequelize) {
     User,
     Wishlist,
     Invoice,
+    Report,
   };
 }
 module.exports = initModels;

@@ -18,6 +18,7 @@ const PackageRoute = require('./PackageRouter');
 const SubscriptionRoute = require('./SubscriptionRouter');
 const ProductRoute = require('./ProductRouter');
 const HolidayRoute = require('./HolidayRouter');
+const ReportRoute = require('./ReportRouter');
 
 const initRoutes = (app) =>{
     app.post("/api/v1/login", AuthManager.login);
@@ -40,5 +41,6 @@ const initRoutes = (app) =>{
     app.use("/api/v1/subscription", SubscriptionRoute);
     app.use("/api/v1/product", ProductRoute);
     app.use("/api/v1/holiday", HolidayRoute);
+    app.use("/api/v1/report", ReportRoute);
 }
 module.exports = initRoutes;
