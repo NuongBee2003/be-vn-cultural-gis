@@ -9,13 +9,13 @@ class ReportManager {
      */
     async createReport(req, res) {
         try {
-            const { location_id, comment_id, report_type, description } = req.body;
+            const { location_id, comment_id, review_id, report_type, description } = req.body;
             const userId = req.userId || null;
 
-            if (!location_id && !comment_id) {
+            if (!location_id && !comment_id && !review_id) {
                 return sendError(res, {
                     statusCode: 400,
-                    message: 'Phải cung cấp location_id hoặc comment_id để báo cáo',
+                    message: 'Phải cung cấp location_id, comment_id hoặc review_id để báo cáo',
                     code: 'BAD_REQUEST'
                 });
             }
@@ -28,7 +28,7 @@ class ReportManager {
                 });
             }
 
-            // Kiểm tra xem location hoặc comment có tồn tại không
+            // Kiểm tra xem location, comment hoặc review có tồn tại không
             if (location_id) {
                 const location = await db.Location.findByPk(location_id);
                 if (!location) {
@@ -51,9 +51,21 @@ class ReportManager {
                 }
             }
 
+            if (review_id) {
+                const review = await db.Review.findByPk(review_id);
+                if (!review) {
+                    return sendError(res, {
+                        statusCode: 404,
+                        message: 'Không tìm thấy đánh giá này',
+                        code: 'NOT_FOUND'
+                    });
+                }
+            }
+
             const report = await reportController.createReport({
                 location_id,
                 comment_id,
+                review_id,
                 user_id: userId,
                 report_type,
                 description

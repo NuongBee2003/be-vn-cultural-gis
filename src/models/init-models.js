@@ -138,6 +138,8 @@ function initModels(sequelize) {
   Location.hasMany(Report, { as: "reports", foreignKey: "location_id"});
   Report.belongsTo(Comment, { as: "comment", foreignKey: "comment_id"});
   Comment.hasMany(Report, { as: "reports", foreignKey: "comment_id"});
+  Report.belongsTo(Review, { as: "review", foreignKey: "review_id"});
+  Review.hasMany(Report, { as: "reports", foreignKey: "review_id"});
   Report.belongsTo(User, { as: "user", foreignKey: "user_id"});
   User.hasMany(Report, { as: "reports", foreignKey: "user_id"});
 

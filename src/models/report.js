@@ -23,6 +23,14 @@ module.exports = function(sequelize, DataTypes) {
         key: 'id'
       }
     },
+    review_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'reviews',
+        key: 'id'
+      }
+    },
     user_id: {
       type: DataTypes.INTEGER,
       allowNull: true,

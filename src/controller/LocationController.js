@@ -29,7 +29,7 @@ class LocationController {
     const cellResults = await runInBatches(
       cells.map((cell) => () =>
         Location.findAll({
-          attributes: ['id', 'lat', 'lng', 'address', 'place_id'],
+          attributes: ['id', 'lat', 'lng', 'address', 'place_id', 'status'],
           where: {
             lat: { [Op.between]: [cell.minLat, cell.maxLat] },
             lng: { [Op.between]: [cell.minLng, cell.maxLng] },
@@ -182,7 +182,7 @@ class LocationController {
 
   async getLocationsByCategory(categoryId) {
     return Location.findAll({
-      attributes: ["id", "lat", "lng", "address", "place_id"],
+      attributes: ["id", "lat", "lng", "address", "place_id", "status"],
       include: [
         {
           model: db.Place,
@@ -210,7 +210,7 @@ class LocationController {
     const offset = (parsedPage - 1) * parsedLimit;
 
     const { count, rows } = await Location.findAndCountAll({
-      attributes: ["id", "lat", "lng", "address", "place_id"],
+      attributes: ["id", "lat", "lng", "address", "place_id", "status"],
       include: [
         {
           model: db.Place,
@@ -255,7 +255,7 @@ class LocationController {
 
     try {
       const { count, rows } = await Location.findAndCountAll({
-        attributes: ["id", "lat", "lng", "address", "place_id"],
+        attributes: ["id", "lat", "lng", "address", "place_id", "status"],
         include: [
           {
             model: db.Place,
@@ -301,7 +301,7 @@ class LocationController {
 
     try {
       const { count, rows } = await Location.findAndCountAll({
-        attributes: ["id", "lat", "lng", "address", "place_id"],
+        attributes: ["id", "lat", "lng", "address", "place_id", "status"],
         include: [
           {
             model: db.Place,

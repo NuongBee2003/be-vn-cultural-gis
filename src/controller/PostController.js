@@ -87,7 +87,7 @@ class PostController {
             {
                 model: db.Location,
                 as: 'location',
-                attributes: ['id', 'lat', 'lng', 'address', 'place_id'],
+                attributes: ['id', 'lat', 'lng', 'address', 'place_id', 'status'],
                 required: false,
                 include: [
                     {

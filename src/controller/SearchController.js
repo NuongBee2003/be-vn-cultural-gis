@@ -311,7 +311,7 @@ class SearchController {
                 {
                     model: db.Location,
                     as: 'locations',
-                    attributes: ['id', 'lat', 'lng', 'address'],
+                    attributes: ['id', 'lat', 'lng', 'address', 'status'],
                     required: false,
                     include: [
                         {
@@ -365,7 +365,7 @@ class SearchController {
                     {
                         model: db.Location,
                         as: 'locations',
-                        attributes: ['id', 'lat', 'lng', 'address'],
+                        attributes: ['id', 'lat', 'lng', 'address', 'status'],
                         required: false,
                         include: [
                             {
@@ -417,6 +417,7 @@ class SearchController {
                     lat: loc.lat ? Number(loc.lat) : null,
                     lng: loc.lng ? Number(loc.lng) : null,
                     address: loc.address,
+                    status: loc.status,
                 })),
             };
         });

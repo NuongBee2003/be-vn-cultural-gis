@@ -12,9 +12,9 @@ const route = express.Router();
 route.get('/admin/all', requireAuth, requireRole('admin'), ReviewManager.getAllReviewsAdmin);
 
 /**
- * Admin xóa đánh giá. API này sử dụng hàm deleteReview có sẵn trong placeManager.
+ * Xóa đánh giá (Admin hoặc người đã đăng đánh giá)
  */
-route.delete('/:reviewId', requireAuth, requireRole('admin'), placeManager.deleteReview);
+route.delete('/:reviewId', requireAuth, placeManager.deleteReview);
 
 /**
  * Thích/Bỏ thích đánh giá

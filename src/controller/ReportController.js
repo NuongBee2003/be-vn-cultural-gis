@@ -4,10 +4,11 @@ class ReportController {
     /**
      * Tạo báo cáo mới
      */
-    async createReport({ location_id, comment_id, user_id, report_type, description }) {
+    async createReport({ location_id, comment_id, review_id, user_id, report_type, description }) {
         const newReport = await db.Report.create({
             location_id: location_id || null,
             comment_id: comment_id || null,
+            review_id: review_id || null,
             user_id: user_id || null,
             report_type,
             description,
@@ -56,6 +57,11 @@ class ReportController {
                     model: db.Comment,
                     as: 'comment',
                     attributes: ['id', 'content', 'created_at']
+                },
+                {
+                    model: db.Review,
+                    as: 'review',
+                    attributes: ['id', 'rating', 'comment', 'created_at']
                 }
             ],
             order: [['created_at', 'DESC']],
@@ -96,6 +102,10 @@ class ReportController {
                 {
                     model: db.Comment,
                     as: 'comment'
+                },
+                {
+                    model: db.Review,
+                    as: 'review'
                 }
             ]
         });
@@ -157,6 +167,15 @@ class ReportController {
                     });
                     await comment.destroy({ transaction });
                     actionTaken = `Đã xóa bình luận #${report.comment_id} bị báo cáo`;
+                }
+            }
+
+            // 3. Nếu là báo cáo Đánh giá (Review) -> Xóa đánh giá tiêu cực đó
+            if (report.review_id) {
+                const review = await db.Review.findByPk(report.review_id, { transaction });
+                if (review) {
+                    await review.destroy({ transaction });
+                    actionTaken = `Đã xóa đánh giá #${report.review_id} bị báo cáo`;
                 }
             }
 

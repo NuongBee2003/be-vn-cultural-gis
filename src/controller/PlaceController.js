@@ -126,7 +126,7 @@ class PlaceController {
                 {
                     model: db.Location,
                     as: 'locations',
-                    attributes: ['id', 'lat', 'lng', 'address'],
+                    attributes: ['id', 'lat', 'lng', 'address', 'status'],
                     required: false,
                     include: [
                         {
@@ -193,7 +193,7 @@ class PlaceController {
                 {
                     model: db.Location,
                     as: 'locations',
-                    attributes: ['id', 'lat', 'lng', 'address'],
+                    attributes: ['id', 'lat', 'lng', 'address', 'status'],
                     required: false,
                     include: [
                         {
@@ -289,7 +289,7 @@ class PlaceController {
                 {
                     model: db.Location,
                     as: 'locations',
-                    attributes: ['id', 'lat', 'lng', 'address'],
+                    attributes: ['id', 'lat', 'lng', 'address', 'status'],
                     required: true,
                 },
             ],
