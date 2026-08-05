@@ -384,26 +384,6 @@ class SubscriptionController {
         }
     }
 
-    async cancel(userId) {
-        const updated = await db.UserSubscription.update(
-            { status: 'cancelled', updated_at: db.sequelize.literal('CURRENT_TIMESTAMP(3)') },
-            { where: { user_id: userId, status: 'active' } }
-        );
-
-        if (updated[0] === 0) {
-            const err = new Error('Không có gói nào đang hoạt động để hủy');
-            err.statusCode = 404;
-            throw err;
-        }
-
-        // Hủy gói dịch vụ thì tắt trạng thái nổi bật (is_featured = 0)
-        await db.Place.update(
-            { is_featured: 0 },
-            { where: { user_id: userId } }
-        );
-
-        return { success: true };
-    }
 
     /**
      * Admin: xem toàn bộ lịch sử đăng ký gói của tất cả user

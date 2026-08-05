@@ -23,7 +23,8 @@ class PlaceController {
         let offset = (parsedPage - 1) * parsedLimit;
 
         if (isFeaturedRequested) {
-            parsedLimit = 200;
+            const paidPlacesCount = await db.Place.count({ where: { is_featured: 1 } }).catch(() => 0);
+            parsedLimit = 200 + paidPlacesCount;
             parsedPage = 1;
             offset = 0;
         }
@@ -150,7 +151,7 @@ class PlaceController {
 
         return {
             rows,
-            count: isFeaturedRequested ? Math.min(count, 200) : count,
+            count: isFeaturedRequested ? Math.min(count, parsedLimit) : count,
             page: parsedPage,
             limit: parsedLimit,
         };

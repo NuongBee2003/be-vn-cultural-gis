@@ -147,23 +147,6 @@ class SubscriptionManager {
         }
     });
 
-    /**
-     * POST /api/v1/subscription/cancel
-     * Hủy gói dịch vụ đang active
-     */
-    cancel = asyncHandler(async (req, res) => {
-        const userId = req.userId;
-        if (!userId) {
-            throw new HttpError(401, 'Yêu cầu đăng nhập');
-        }
-
-        await subscriptionController.cancel(userId);
-
-        return sendSuccess(res, {
-            statusCode: 200,
-            message: 'Hủy gói thành công',
-        });
-    });
 }
 
 module.exports = new SubscriptionManager();

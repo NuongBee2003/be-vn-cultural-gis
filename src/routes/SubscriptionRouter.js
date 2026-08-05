@@ -231,44 +231,6 @@ route.get('/admin/all', requireAuth, requireRole('admin'), subscriptionManager.g
  */
 route.post('/subscribe', requireAuth, subscriptionManager.subscribe);
 
-/**
- * @openapi
- * /api/v1/subscription/cancel:
- *   post:
- *     tags:
- *       - Subscription
- *     summary: Hủy gói dịch vụ đang active
- *     description: |
- *       Hủy tất cả gói đang `active` của user hiện tại (chuyển sang `cancelled`).
- *       Sau khi hủy, user sẽ trở lại dùng giới hạn của gói Free mặc định.
- *
- *       **Lưu ý:** Hành động này không hoàn tiền. Dùng cho luồng xử lý hủy đăng ký.
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Hủy gói thành công
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success: { type: boolean, example: true }
- *                 message: { type: string, example: 'Hủy gói thành công' }
- *       404:
- *         description: Không có gói nào đang active để hủy
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       401:
- *         description: Chưa đăng nhập
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-route.post('/cancel', requireAuth, subscriptionManager.cancel);
 
 /**
  * @openapi
