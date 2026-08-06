@@ -85,6 +85,15 @@ class SubscriptionManager {
             throw new HttpError(400, 'packageId là bắt buộc');
         }
 
+        if (!businessName || !businessName.trim() || !businessPhone || !businessPhone.trim()) {
+            throw new HttpError(400, 'Vui lòng nhập đầy đủ tên doanh nghiệp và số điện thoại');
+        }
+
+        const phoneRegex = /^0\d{9}$/;
+        if (!phoneRegex.test(businessPhone.trim())) {
+            throw new HttpError(400, 'Số điện thoại phải gồm 10 chữ số và bắt đầu bằng số 0');
+        }
+
         const ipAddr = req.ip || req.headers['x-forwarded-for'] || '127.0.0.1';
 
         const protocol = req.headers['x-forwarded-proto'] || req.protocol;
