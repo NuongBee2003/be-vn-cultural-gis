@@ -86,6 +86,10 @@ class AuthManager {
                 return res.status(401).json({ message: 'Invalid email or password' });
             }
 
+            if (user.status === 'banned') {
+                return res.status(403).json({ message: 'Tài khoản của bạn bị khóa hãy gửi qua email admin : thanhdats22003@gmail.com để khiếu nại' });
+            }
+
             const isMatch = await bcrypt.compare(password, user.password_hash);
             if (!isMatch) {
                 return res.status(401).json({ message: 'Invalid email or password' });

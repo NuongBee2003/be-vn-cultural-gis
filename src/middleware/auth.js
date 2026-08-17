@@ -30,6 +30,9 @@ async function requireAuth(req, res, next) {
         if (userId) {
             const dbUser = await db.User.findByPk(userId);
             if (dbUser) {
+                if (dbUser.status === 'banned') {
+                    return res.status(403).json({ success: false, message: "Tài khoản của bạn đã bị khóa." });
+                }
                 req.user = {
                     ...decoded,
                     ...dbUser.get({ plain: true }),

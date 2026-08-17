@@ -24,6 +24,65 @@ class UserManager {
         }
     }
 
+    async updateRole(req, res) {
+        try {
+            const { id } = req.params;
+            const { role } = req.body;
+            
+            if (!role || !['admin', 'user', 'business'].includes(role)) {
+                return res.status(400).json({ message: 'Role is invalid or missing. Must be admin, user, or business.' });
+            }
+
+            const targetUser = await userController.getUserById(id);
+            if (!targetUser) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            // Optional: prevent changing your own role or superadmin role if necessary
+            if (targetUser.id === req.userId) {
+                return res.status(403).json({ message: 'You cannot change your own role' });
+            }
+
+            const updatedUser = await userController.updateUser(id, { role });
+            return res.status(200).json({ success: true, data: updatedUser });
+        } catch (error) {
+            console.error('ERROR in updateRole:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+    }
+
+    async updateStatus(req, res) {
+        try {
+            const { id } = req.params;
+            const { status } = req.body;
+            
+            if (!status || !['active', 'banned'].includes(status)) {
+                return res.status(400).json({ message: 'Status is invalid or missing. Must be active or banned.' });
+            }
+
+            const targetUser = await userController.getUserById(id);
+            if (!targetUser) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            // Prevent banning yourself
+            if (targetUser.id === req.userId) {
+                return res.status(403).json({ message: 'You cannot change your own status' });
+            }
+
+            // Optional: prevent banning a super admin if necessary
+            if (targetUser.role === 'admin' && req.user?.role !== 'superadmin') { // assuming you might have superadmin, otherwise just prevent banning admins if needed
+                // It's up to business logic. For now, allow admin to ban others.
+            }
+
+            const updatedUser = await userController.updateUser(id, { status });
+            return res.status(200).json({ success: true, data: updatedUser });
+        } catch (error) {
+            console.error('ERROR in updateStatus:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+    }
+
     async updateMe(req, res) {
         try {
             const userId = req.userId;

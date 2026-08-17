@@ -25,6 +25,11 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       defaultValue: "user"
     },
+    status: {
+      type: DataTypes.ENUM('active','banned'),
+      allowNull: false,
+      defaultValue: "active"
+    },
     avatar: {
       type: DataTypes.STRING(191),
       allowNull: true

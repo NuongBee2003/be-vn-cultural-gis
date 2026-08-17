@@ -9,7 +9,7 @@ class UserController {
 
     async getAllUsersAdmin() {
         return db.User.findAll({
-            attributes: ['id', 'username', 'email', 'role', 'avatar', 'created_at'],
+            attributes: ['id', 'username', 'email', 'role', 'status', 'avatar', 'created_at'],
             order: [['created_at', 'DESC']],
         });
     }
