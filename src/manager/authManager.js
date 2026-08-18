@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs');
+const { OAuth2Client } = require('google-auth-library');
 const userController = require('../controller/UserController');
 const {
     BCRYPT_ROUNDS,
@@ -106,6 +107,67 @@ class AuthManager {
                 return res.status(statusCode).json({ message: error.message });
             }
             return res.status(500).json({ message: 'Internal server error' });
+        }
+    }
+
+    async googleLogin(req, res) {
+        try {
+            const secret = getSecret();
+            if (!secret) {
+                return res.status(500).json({ message: 'Server misconfigured: JWT_SECRET is missing' });
+            }
+
+            const { token, isMock, mockEmail, mockUsername, mockAvatar } = req.body;
+            let email, name, avatar;
+
+            if (isMock) {
+                email = mockEmail;
+                name = mockUsername;
+                avatar = mockAvatar;
+            } else {
+                const GOOGLE_CLIENT_ID = process.env.VITE_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
+                if (!GOOGLE_CLIENT_ID) {
+                    return res.status(500).json({ message: 'Google Client ID chưa được cấu hình trên Server' });
+                }
+                const client = new OAuth2Client(GOOGLE_CLIENT_ID);
+                const ticket = await client.verifyIdToken({
+                    idToken: token,
+                    audience: GOOGLE_CLIENT_ID,
+                });
+                const payload = ticket.getPayload();
+                email = payload.email;
+                name = payload.name;
+                avatar = payload.picture;
+            }
+
+            if (!email) {
+                return res.status(400).json({ message: 'Không thể lấy email từ Google' });
+            }
+
+            let user = await userController.getUserByEmail(email);
+
+            if (user && user.status === 'banned') {
+                return res.status(403).json({ message: 'Tài khoản của bạn bị khóa hãy gửi qua email admin : thanhdats22003@gmail.com để khiếu nại' });
+            }
+
+            if (!user) {
+                // Register new user via Google
+                const randomPassword = Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-10);
+                const passwordHash = await bcrypt.hash(randomPassword, BCRYPT_ROUNDS);
+                user = await userController.createUser({
+                    username: name || 'Google User',
+                    email: email,
+                    password_hash: passwordHash,
+                    avatar: avatar,
+                });
+            }
+
+            const jwtToken = signAuthToken(user, secret, getExpiresIn());
+
+            return res.status(200).json({ token: jwtToken, user: toUserResponse(user) });
+        } catch (error) {
+            console.error('ERROR in googleLogin:', error);
+            return res.status(401).json({ message: 'Xác thực Google thất bại' });
         }
     }
 
